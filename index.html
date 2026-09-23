@@ -380,7 +380,10 @@ function resolveRound(action){
 }
 
 function renderEnd(){
-  const win = G.youB < G.engB;
+  const d = G.youB - G.engB, EPS = 1e-9;
+  const verdict = d < -EPS ? '&#127942; You were better calibrated than the engine.'
+    : d > EPS ? '&#129302; The engine was better calibrated. It trains for this; you just met it.'
+    : '&#9878;&#65039; Dead heat &mdash; identical calibration. The engine matched you probability for probability.';
   let best = parseInt(localStorage.getItem('s1duel_best') || '-999999', 10);
   best = Math.max(best, G.points);
   localStorage.setItem('s1duel_best', String(best));
@@ -388,7 +391,7 @@ function renderEnd(){
     `R${i + 1} ${h.truth ? '&#10003;' : '&#10007;'} ${h.action} ${h.pts >= 0 ? '+' : ''}${h.pts} &middot; you ${Math.round(h.p * 100)}% &middot; eng ${Math.round(h.ep * 100)}%`).join('<br>');
   gid('gstage').innerHTML =
     `<div class="card"><h2>&#127937; Duel over</h2>` +
-    `<div class="gverdict">${win ? '&#127942; You were better calibrated than the engine.' : '&#129302; The engine was better calibrated. It trains for this; you just met it.'}</div>` +
+    `<div class="gverdict">${verdict}</div>` +
     `<div class="gfinal">Points: <b>${G.points >= 0 ? '+' : ''}${G.points}</b> (best: ${best >= 0 ? '+' : ''}${best})<br>` +
     `Brier &mdash; you <b>${G.youB.toFixed(3)}</b> &middot; engine <b>${G.engB.toFixed(3)}</b> (lower wins)<br>` +
     `<span style="font-size:12px">Brier = mean((p &minus; truth)&sup2;): the proper scoring rule RLCD optimizes. This is why Jev's probabilities mean something.</span></div>` +
