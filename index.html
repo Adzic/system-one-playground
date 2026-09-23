@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>System One Playground — a Jev-inspired decision engine</title>
+<style>
+  :root{
+    --bg:#0a0d13; --panel:#111724; --panel2:#0d121d; --line:#223047;
+    --text:#e9edf5; --muted:#8d99b0; --accent:#5eead4;
+    --amber:#fbbf24; --green:#34d399; --violet:#a78bfa;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);
+    background:radial-gradient(1200px 600px at 80% -10%,#12233a 0%,var(--bg) 55%) fixed,var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 18px 80px}
+  .logo{font-family:var(--mono);font-weight:700;letter-spacing:.14em;font-size:13px;color:var(--accent);
+    border:1px solid var(--line);padding:8px 12px;border-radius:10px;background:rgba(94,234,212,.06);display:inline-block}
+  h1{font-size:30px;margin:14px 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0 0 18px;max-width:660px}
+  .sub b{color:var(--text)}
+  .status{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:10px 14px;font-family:var(--mono);font-size:12.5px;margin-bottom:6px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px var(--amber);flex:none}
+  .dot.ready{background:var(--green);box-shadow:0 0 12px var(--green)}
+  .dot.error{background:#f87171;box-shadow:0 0 12px #f87171}
+  .bar{height:4px;background:#1b2436;border-radius:2px;overflow:hidden;margin:0 0 14px;display:none}
+  .bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:12.5px;font-family:var(--mono);letter-spacing:.12em;color:var(--muted);margin:0 0 10px;text-transform:uppercase}
+  textarea,input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);
+    color:var(--text);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit}
+  textarea{min-height:104px;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--accent)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--text);border-radius:999px;padding:7px 13px;cursor:pointer}
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+  .qcard{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--panel2)}
+  .qhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .qhead input{flex:1}
+  .badge{font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:4px 9px;border-radius:6px;font-weight:700;flex:none}
+  .b-choice{background:rgba(94,234,212,.14);color:var(--accent)}
+  .b-score{background:rgba(251,191,36,.14);color:var(--amber)}
+  .b-noul{background:rgba(167,139,250,.16);color:var(--violet)}
+  .iconbtn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;flex:none}
+  .iconbtn:hover{color:#f87171;border-color:#f87171}
+  .optrow{display:flex;gap:8px;margin-bottom:8px}
+  .optrow input{flex:1}
+  .mini{background:none;border:1px dashed var(--line);color:var(--muted);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12.5px;font-family:var(--mono)}
+  .mini:hover{color:var(--accent);border-color:var(--accent)}
+  .addrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;border:1px solid var(--line);background:var(--panel);
+    color:var(--text);border-radius:10px;padding:9px 14px;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#06251f;font-weight:700;font-size:16px;
+    padding:14px 22px;border-radius:12px;width:100%;margin-top:2px;letter-spacing:.06em}
+  .btn.primary:disabled{opacity:.45;cursor:not-allowed}
+  .btn.primary:not(:disabled):hover{filter:brightness(1.08);color:#06251f}
+  .tau{display:flex;align-items:center;gap:12px}
+  .tau input[type=range]{flex:1;accent-color:var(--accent)}
+  .tauval{font-family:var(--mono);font-size:15px;color:var(--accent);min-width:52px;text-align:right}
+  .hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+  .result{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--panel2)}
+  .rhead{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .rhead .q{font-weight:600}
+  .verdict{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;
+    padding:6px 12px;border-radius:999px;white-space:nowrap}
+  .v-act{background:rgba(52,211,153,.13);color:var(--green);border:1px solid rgba(52,211,153,.45)}
+  .v-esc{background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.45)}
+  .opt{margin-bottom:9px}
+  .opt .lbl{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:4px}
+  .opt .lbl .p{font-family:var(--mono);color:var(--muted);flex:none}
+  .track{height:9px;background:#1b2436;border-radius:5px;overflow:hidden}
+  .track>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2dd4bf,#5eead4);border-radius:5px;transition:width .6s ease}
+  .opt.top .lbl{font-weight:700}
+  .opt.top .lbl .p{color:var(--accent)}
+  .bignum{font-family:var(--mono);font-size:46px;font-weight:700;color:var(--accent);margin:2px 0 8px;line-height:1.1}
+  .bignum small{font-size:16px;color:var(--muted);font-weight:400}
+  .meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:10px}
+  .summary{font-family:var(--mono);font-size:13px;background:rgba(94,234,212,.06);
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+  .summary b{color:var(--accent)}
+  details.how{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--panel);margin-top:18px}
+  details.how summary{cursor:pointer;font-weight:600}
+  details.how p,details.how li{color:var(--muted);font-size:14px}
+  details.how code{font-family:var(--mono);color:var(--accent);font-size:13px}
+  footer{margin-top:26px;color:var(--muted);font-size:12px;font-family:var(--mono);text-align:center}
+  .empty{color:var(--muted);font-family:var(--mono);font-size:13px;text-align:center;padding:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">SYSTEM&nbsp;ONE</div>
+  <h1>Decision engine playground</h1>
+  <p class="sub">A Jev-inspired toy: typed decisions with probabilities — <b>Choice</b>, <b>Score</b>, <b>Noul</b> — answered in parallel by a small model running <b>entirely in your browser</b>. No API key. No payment. No text generation.</p>
+
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">Preparing…</span></div>
+  <div class="bar" id="loadbar"><i id="loadfill"></i></div>
+
+  <div class="card">
+    <h2>① State — the situation to judge</h2>
+    <textarea id="state" placeholder="Paste the situation here: a customer message, a description, a dilemma…"></textarea>
+    <div class="chips">
+      <button class="chip" data-preset="hotdog">🌭 hot dog</button>
+      <button class="chip" data-preset="support">🎧 support triage</button>
+      <button class="chip" data-preset="movie">🎬 movie night</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>② Questions — what should be decided</h2>
+    <div id="qlist"></div>
+    <div class="addrow">
+      <button class="btn" id="addChoice">+ Choice</button>
+      <button class="btn" id="addScore">+ Score</button>
+      <button class="btn" id="addNoul">+ Noul</button>
+    </div>
+    <p class="hint"><b>Choice</b> picks one of N options · <b>Score</b> rates on a scale · <b>Noul</b> answers yes/no as a probability. Every question is answered in parallel.</p>
+  </div>
+
+  <div class="card">
+    <h2>③ Autonomy threshold τ</h2>
+    <div class="tau">
+      <input type="range" id="tau" min="0.5" max="0.99" step="0.01" value="0.8">
+      <span class="tauval" id="tauval">0.80</span>
+    </div>
+    <p class="hint">Act automatically when the top probability ≥ τ, otherwise escalate to a human. This is the whole game: don't hide uncertainty inside the model — expose it.</p>
+  </div>
+
+  <button class="btn primary" id="decide" disabled>▸ DECIDE</button>
+
+  <div id="results" style="margin-top:16px"></div>
+
+  <details class="how">
+    <summary>How this works (honest version)</summary>
+    <p><b>What's real:</b> a quantized NLI model (<code>Xenova/nli-deberta-v3-xsmall</code>) runs 100% in your browser via Transformers.js. Each primitive maps to entailment: <i>Noul</i> = P(statement is true | state); <i>Choice</i> = entailment per option, normalized; <i>Score</i> = distribution over scale labels with the expected value reported. All questions run in parallel — the "single forward pass" spirit.</p>
+    <p><b>What's not real Jev:</b> Jev trains with RLCD so its probabilities are <i>calibrated</i>; these are raw model scores — demo-grade, not decision-grade. Jev answers everything in one true forward pass; here we batch parallel calls.</p>
+    <p><b>The takeaway is the mechanism:</b> <code>decision = model.decide(state)</code> with uncertainty exposed, and a threshold deciding autonomy. That's the idea worth stealing.</p>
+  </details>
+
+  <footer>system one playground · runs on your device · nothing you type leaves the browser</footer>
+</div>
+
+<script type="module">
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+env.allowLocalModels = false;
+
+const MODEL_ID = 'Xenova/nli-deberta-v3-xsmall';
+let classifier = null;
+let questions = [];
+let qseq = 0;
+
+const $ = id => document.getElementById(id);
+const dot = $('dot'), statusText = $('statusText'), loadbar = $('loadbar'), loadfill = $('loadfill');
+
+function setStatus(mode, msg){
+  dot.className = 'dot' + (mode === 'ready' ? ' ready' : mode === 'error' ? ' error' : '');
+  statusText.textContent = msg;
+}
+
+async function ensureModel(){
+  if (classifier) return classifier;
+  setStatus('loading', 'Downloading decision engine (one time)…');
+  loadbar.style.display = 'block';
+  try {
+    classifier = await pipeline('zero-shot-classification', MODEL_ID, {
+      progress_callback: (p) => {
+        if (p.status === 'progress' && p.total) {
+          const pct = Math.round(100 * p.loaded / p.total);
+          loadfill.style.width = pct + '%';
+          statusText.textContent = 'Downloading ' + p.file + ' — ' + pct + '%';
+        }
+      }
+    });
+    loadbar.style.display = 'none';
+    setStatus('ready', 'Engine ready — running 100% in your browser');
+    $('decide').disabled = false;
+  } catch (e) {
+    console.error(e);
+    loadbar.style.display = 'none';
+    setStatus('error', 'Could not load the model (network needed once). Reload to retry.');
+  }
+  return classifier;
+}
+
+/* ---------- question model ---------- */
+function newQuestion(type){
+  const q = { id: ++qseq, type, text: '' };
+  if (type === 'choice') { q.text = 'Pick one'; q.options = ['Option A', 'Option B']; }
+  if (type === 'score')  { q.text = 'Rate it'; q.labels = 'calm, annoyed, frustrated, angry, furious'; }
+  if (type === 'noul')   { q.text = 'Is it true?'; q.statement = ''; }
+  questions.push(q);
+  renderQuestions();
+}
+
+function renderQuestions(){
+  const list = $('qlist');
+  list.innerHTML = '';
+  if (!questions.length) {
+    list.innerHTML = '<div class="empty">no questions yet — add one below</div>';
+    return;
+  }
+  questions.forEach(q => {
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    const badge = q.type === 'choice' ? '<span class="badge b-choice">CHOICE</span>'
+      : q.type === 'score' ? '<span class="badge b-score">SCORE</span>'
+      : '<span class="badge b-noul">NOUL</span>';
+    let body = '';
+    if (q.type === 'choice') {
+      body = q.options.map((op, i) =>
+        `<div class="optrow"><input type="text" data-q="${q.id}" data-oi="${i}" value="${escapeAttr(op)}" placeholder="Option ${i+1}">` +
+        `<button class="iconbtn" data-delopt="${q.id}:${i}" title="remove">✕</button></div>`
+      ).join('') + `<button class="mini" data-addopt="${q.id}">+ add option</button>`;
+    } else if (q.type === 'score') {
+      body = `<input type="text" data-qlabels="${q.id}" value="${escapeAttr(q.labels)}" placeholder="comma-separated scale labels, low → high">` +
+        `<p class="hint">Scale labels from low to high, e.g. <i>terrible, bad, ok, good, amazing</i>. Reported as expected value.</p>`;
+    } else {
+      body = `<input type="text" data-qstmt="${q.id}" value="${escapeAttr(q.statement)}" placeholder='Statement to judge, e.g. "A hot dog is a sandwich"'>`;
+    }
+    card.innerHTML =
+      `<div class="qhead">${badge}<input type="text" data-qtext="${q.id}" value="${escapeAttr(q.text)}" placeholder="Question label">` +
+      `<button class="iconbtn" data-delq="${q.id}" title="remove question">✕</button></div>` + body;
+    list.appendChild(card);
+  });
+
+  list.querySelectorAll('[data-qtext]').forEach(el =>
+    el.addEventListener('input', e => { findQ(+e.target.dataset.qtext).text = e.target.value; }));
+  list.querySelectorAll('[data-oi]').forEach(el =>
+    el.addEventListener('input', e => {
+      const q = findQ(+e.target.dataset.q);
+      q.options[+e.target.dataset.oi] = e.target.value;
+    }));
+  list.querySelectorAll('[data-qlabels]').forEach(el =>
+    el.addEventListener('input', e => { findQ(+e.target.dataset.qlabels).labels = e.target.value; }));
+  list.querySelectorAll('[data-qstmt]').forEach(el =>
+    el.addEventListener('input', e => { findQ(+e.target.dataset.qstmt).statement = e.target.value; }));
+  list.querySelectorAll('[data-delq]').forEach(el =>
+    el.addEventListener('click', e => {
+      questions = questions.filter(q => q.id !== +e.target.dataset.delq);
+      renderQuestions();
+    }));
+  list.querySelectorAll('[data-addopt]').forEach(el =>
+    el.addEventListener('click', e => {
+      findQ(+e.target.dataset.addopt).options.push('Option ' + (findQ(+e.target.dataset.addopt).options.length + 1));
+      renderQuestions();
+    }));
+  list.querySelectorAll('[data-delopt]').forEach(el =>
+    el.addEventListener('click', e => {
+      const [qid, oi] = e.target.dataset.delopt.split(':').map(Number);
+      const q = findQ(qid);
+      if (q.options.length > 2) { q.options.splice(oi, 1); renderQuestions(); }
+    }));
+}
+
+function findQ(id){ return questions.find(q => q.id === id); }
+function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+/* ---------- presets ---------- */
+const PRESETS = {
+  hotdog: {
+    state: 'A hot dog is a sausage in a bun, usually topped with mustard or ketchup.',
+    questions: [
+      { type: 'noul', text: 'Sandwich verdict', statement: 'A hot dog is a sandwich' }
+    ]
+  },
+  support: {
+    state: 'My bill this month is $340 but I only agreed to $89. This is the THIRD time this happened. I am furious and I want to cancel everything right now.',
+    questions: [
+      { type: 'choice', text: 'Route this ticket', options: ['Billing', 'Technical', 'Sales', 'Human agent'] },
+      { type: 'noul', text: 'Refund intent', statement: 'The customer wants a refund' },
+      { type: 'score', text: 'Frustration level', labels: 'calm, annoyed, frustrated, angry, furious' }
+    ]
+  },
+  movie: {
+    state: 'Friday night, four friends, everyone is tired. Ana loves sci-fi, Marko hates horror, nobody wants anything heavy.',
+    questions: [
+      { type: 'choice', text: 'Pick the movie', options: ['Dune: Part Two', 'The Hangover', 'Get Out', 'Guardians of the Galaxy'] }
+    ]
+  }
+};
+
+function loadPreset(name){
+  const p = PRESETS[name];
+  $('state').value = p.state;
+  questions = [];
+  p.questions.forEach(q => {
+    const nq = { id: ++qseq, type: q.type, text: q.text };
+    if (q.type === 'choice') nq.options = [...q.options];
+    if (q.type === 'score') nq.labels = q.labels;
+    if (q.type === 'noul') nq.statement = q.statement;
+    questions.push(nq);
+  });
+  renderQuestions();
+  $('results').innerHTML = '';
+}
+
+document.querySelectorAll('[data-preset]').forEach(el =>
+  el.addEventListener('click', () => loadPreset(el.dataset.preset)));
+
+/* ---------- inference ---------- */
+function norm(scores){
+  const s = scores.reduce((a, b) => a + b, 0) || 1;
+  return scores.map(x => x / s);
+}
+
+async function runChoice(state, q){
+  const options = q.options.map(o => o.trim()).filter(Boolean);
+  if (options.length < 2) throw new Error('Choice needs at least 2 options.');
+  const out = await classifier(state, options, {
+    hypothesis_template: 'The best choice is {}.',
+    multi_label: false
+  });
+  const byLabel = Object.fromEntries(out.map(o => [o.label, o.score]));
+  const probs = norm(options.map(o => byLabel[o] ?? 0));
+  return {
+    kind: 'choice',
+    dist: options.map((o, i) => ({ label: o, p: probs[i] })).sort((a, b) => b.p - a.p)
+  };
+}
+
+async function runScore(state, q){
+  const labels = q.labels.split(',').map(s => s.trim()).filter(Boolean);
+  if (labels.length < 2) throw new Error('Score needs at least 2 scale labels.');
+  if (labels.length > 10) throw new Error('Score supports at most 10 levels.');
+  const out = await classifier(state, labels, {
+    hypothesis_template: 'This text is {}.',
+    multi_label: false
+  });
+  const byLabel = Object.fromEntries(out.map(o => [o.label, o.score]));
+  const probs = norm(labels.map(l => byLabel[l] ?? 0));
+  const expected = probs.reduce((a, p, i) => a + p * (i + 1), 0);
+  return { kind: 'score', dist: labels.map((l, i) => ({ label: l, p: probs[i] })), expected };
+}
+
+async function runNoul(state, q){
+  const statement = q.statement.trim();
+  if (!statement) throw new Error('Noul needs a statement.');
+  const out = await classifier(state, ['true', 'false'], {
+    hypothesis_template: statement + ' This statement is {}.',
+    multi_label: false
+  });
+  const byLabel = Object.fromEntries(out.map(o => [o.label, o.score]));
+  const [pTrue, pFalse] = norm([byLabel['true'] ?? 0, byLabel['false'] ?? 0]);
+  return { kind: 'noul', pTrue, pFalse };
+}
+
+async function runQuestion(state, q){
+  if (q.type === 'choice') return runChoice(state, q);
+  if (q.type === 'score') return runScore(state, q);
+  return runNoul(state, q);
+}
+
+/* ---------- rendering ---------- */
+function pct(p){ return (p * 100).toFixed(1) + '%'; }
+
+function renderResults(results, tau, totalMs){
+  const box = $('results');
+  box.innerHTML = '';
+  let auto = 0;
+
+  const sum = document.createElement('div');
+  sum.className = 'summary';
+  box.appendChild(sum);
+
+  results.forEach(r => {
+    const q = r.q;
+    const topP = r.kind === 'choice' ? r.dist[0].p
+      : r.kind === 'score' ? Math.max(...r.dist.map(d => d.p))
+      : Math.max(r.pTrue, r.pFalse);
+    const isAuto = topP >= tau;
+    if (isAuto) auto++;
+
+    const card = document.createElement('div');
+    card.className = 'result';
+    const badge = q.type === 'choice' ? '<span class="badge b-choice">CHOICE</span>'
+      : q.type === 'score' ? '<span class="badge b-score">SCORE</span>'
+      : '<span class="badge b-noul">NOUL</span>';
+    const verdict = `<span class="verdict ${isAuto ? 'v-act' : 'v-esc'}">${isAuto ? '✓ AUTO-ACT' : '? ESCALATE'}</span>`;
+
+    let bodyHtml = '';
+    if (r.kind === 'choice') {
+      bodyHtml = r.dist.map((d, i) =>
+        `<div class="opt${i === 0 ? ' top' : ''}"><div class="lbl"><span>${escapeHtml(d.label)}</span><span class="p">${pct(d.p)}</span></div>` +
+        `<div class="track"><i style="width:${(d.p * 100).toFixed(1)}%"></i></div></div>`
+      ).join('');
+    } else if (r.kind === 'score') {
+      bodyHtml = `<div class="bignum">≈ ${r.expected.toFixed(1)} <small>/ ${r.dist.length}</small></div>` +
+        r.dist.map(d =>
+          `<div class="opt"><div class="lbl"><span>${escapeHtml(d.label)}</span><span class="p">${pct(d.p)}</span></div>` +
+          `<div class="track"><i style="width:${(d.p * 100).toFixed(1)}%"></i></div></div>`
+        ).join('');
+    } else {
+      const verdictText = r.pTrue >= 0.5 ? 'TRUE' : 'FALSE';
+      bodyHtml = `<div class="bignum">${pct(r.pTrue)} <small>${verdictText}</small></div>` +
+        `<div class="opt"><div class="lbl"><span>true</span><span class="p">${pct(r.pTrue)}</span></div>` +
+        `<div class="track"><i style="width:${(r.pTrue * 100).toFixed(1)}%"></i></div></div>` +
+        `<div class="opt"><div class="lbl"><span>false</span><span class="p">${pct(r.pFalse)}</span></div>` +
+        `<div class="track"><i style="width:${(r.pFalse * 100).toFixed(1)}%"></i></div></div>`;
+    }
+
+    card.innerHTML =
+      `<div class="rhead">${badge}<span class="q">${escapeHtml(q.text || q.type)}</span>${verdict}</div>` +
+      bodyHtml +
+      `<div class="meta">top p = ${topP.toFixed(3)} · τ = ${tau.toFixed(2)} · ${r.ms}ms</div>`;
+    box.appendChild(card);
+  });
+
+  sum.innerHTML = `<b>${auto}/${results.length}</b> decisions autonomous at τ = ${tau.toFixed(2)} · ${results.length - auto} escalated · total ${totalMs}ms`;
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- wire up ---------- */
+$('addChoice').addEventListener('click', () => newQuestion('choice'));
+$('addScore').addEventListener('click', () => newQuestion('score'));
+$('addNoul').addEventListener('click', () => newQuestion('noul'));
+$('tau').addEventListener('input', e => { $('tauval').textContent = parseFloat(e.target.value).toFixed(2); });
+
+$('decide').addEventListener('click', async () => {
+  const state = $('state').value.trim();
+  if (!state) { alert('Give the engine a state to judge first.'); return; }
+  if (!questions.length) { alert('Add at least one question.'); return; }
+  const tau = parseFloat($('tau').value);
+  const btn = $('decide');
+  btn.disabled = true;
+  btn.textContent = 'DECIDING…';
+  const t0 = performance.now();
+  try {
+    const results = await Promise.all(questions.map(async (q) => {
+      const t = performance.now();
+      const r = await runQuestion(state, q);
+      r.ms = Math.round(performance.now() - t);
+      r.q = q;
+      return r;
+    }));
+    renderResults(results, tau, Math.round(performance.now() - t0));
+  } catch (e) {
+    console.error(e);
+    alert('Inference failed: ' + (e.message || e));
+  }
+  btn.disabled = false;
+  btn.textContent = '▸ DECIDE';
+});
+
+loadPreset('support');
+ensureModel();
+</script>
+</body>
+</html>
