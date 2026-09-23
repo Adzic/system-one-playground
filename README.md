@@ -10,6 +10,10 @@ Describe a situation, then ask three kinds of questions:
 
 An autonomy-threshold slider marks each decision `AUTO-ACT` or `ESCALATE`.
 
+**Make it a game:** on any Choice question, set *🎯 your call* before hitting DECIDE — the engine tells you whether it agrees or overrules you. Copy the result into the group chat and argue about it. That's the whole point: the probabilities are the conversation starter.
+
+Presets: 🌭 hot dog (the default — settle the sandwich debate), 🎧 support triage, 🎬 movie night, 🍕 pizza wars, ✈️ weekend trip.
+
 ## How it works
 
 The page loads a small open-weights NLI model (`Xenova/nli-deberta-v3-xsmall`) via Transformers.js and runs inference locally in your browser using ONNX Runtime Web. First load downloads the model once and caches it; afterwards it works offline.
@@ -28,4 +32,4 @@ The page loads a small open-weights NLI model (`Xenova/nli-deberta-v3-xsmall`) v
 
 It's a single static file. Open `index.html` directly, or serve the folder with any static host (Netlify, GitHub Pages, Vercel, `python3 -m http.server`).
 
-Live demo: `https://playground.coacerva.com` (planned)
+Live demo: `https://coacerva.com`
