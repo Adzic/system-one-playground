@@ -97,6 +97,48 @@
   .callout.win{border-color:rgba(52,211,153,.5);color:var(--green)}
   .callout.lose{border-color:rgba(251,191,36,.5);color:var(--amber)}
   .callout b{color:var(--text)}
+  .modetabs{display:flex;gap:8px;margin-bottom:14px}
+  .modetab{flex:1;font-family:var(--mono);font-size:13px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+  .modetab.active{color:var(--accent);border-color:var(--accent);background:rgba(94,234,212,.06)}
+  .gsub{color:var(--muted);font-size:14.5px;margin:0 0 12px}
+  .gsub b{color:var(--text)}
+  .paytable{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:6px}
+  .payrow{display:grid;grid-template-columns:1fr 90px 90px;text-align:center;font-size:13.5px}
+  .payrow span{padding:8px;border-top:1px solid var(--line)}
+  .payrow span:first-child{text-align:left;padding-left:12px}
+  .payrow.phead{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em}
+  .payrow.phead span{border-top:none}
+  .pos{color:var(--green)} .neg{color:#f87171}
+  .gboard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .gstat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .gk{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted)}
+  .gv{display:block;font-family:var(--mono);font-size:19px;color:var(--accent);margin-top:2px}
+  .gstmt{font-size:19px;font-weight:600;margin-bottom:14px;line-height:1.45}
+  .glabel{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:8px}
+  .gslider{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .gslider input[type=range]{flex:1;accent-color:var(--accent);height:32px}
+  .gtauval{font-family:var(--mono);font-size:22px;color:var(--accent);min-width:64px;text-align:right}
+  .gprobs{display:flex;gap:10px;margin-bottom:14px}
+  .gp{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel2);min-width:0}
+  .gp span{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted)}
+  .gp b{display:block;font-family:var(--mono);font-size:24px;color:var(--accent);margin:2px 0 6px}
+  .gact{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}
+  .btn.act{display:flex;flex-direction:column;gap:2px;font-size:13px;padding:12px 6px}
+  .btn.act span{font-family:var(--mono);font-size:10.5px;color:var(--muted);font-weight:400}
+  .greveal{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:.12em;text-align:center;border-radius:10px;padding:10px;margin-bottom:12px}
+  .greveal.true{background:rgba(52,211,153,.13);color:var(--green);border:1px solid rgba(52,211,153,.45)}
+  .greveal.false{background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.45)}
+  .gdelta{font-family:var(--mono);font-size:34px;font-weight:700;text-align:center;margin:6px 0}
+  .gdelta.pos{color:var(--green)} .gdelta.neg{color:#f87171}
+  .gdetail{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;line-height:1.7}
+  .gverdict{font-size:17px;font-weight:600;margin-bottom:10px}
+  .gfinal{font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.8}
+  .gfinal b{color:var(--text)}
+  .ghist{font-family:var(--mono);font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-bottom:14px;line-height:1.9}
+  .gthink{text-align:center;color:var(--muted);font-family:var(--mono);font-size:13px;padding:26px 0}
+  .gbtnrow{display:flex;gap:8px;margin-top:10px}
+  .gbtnrow .btn{flex:1}
+  .gbtnrow .btn.primary{width:auto}
 </style>
 </head>
 <body>
@@ -107,6 +149,35 @@
 
   <div class="status"><span class="dot" id="dot"></span><span id="statusText">Preparing…</span></div>
   <div class="bar" id="loadbar"><i id="loadfill"></i></div>
+
+  <div class="modetabs">
+    <button class="modetab active" id="tabGame">🎮 Calibration Duel</button>
+    <button class="modetab" id="tabLab">🧪 Playground</button>
+  </div>
+
+  <div id="gameView">
+    <div class="card" id="ghero">
+      <h2>🎮 Calibration Duel — you vs the engine</h2>
+      <p class="gsub">10 statements. Some true, some false. Lock in <b>your</b> probability, see the <b>engine's</b>, then decide: <b>AUTO-ACT</b>, <b>ESCALATE</b>, or <b>SKIP</b>. You're scored twice — on <b>calibration</b> (Brier score, lower wins; the same objective RLCD trains on) and on <b>points</b>.</p>
+      <div class="paytable">
+        <div class="payrow phead"><span></span><span>if TRUE</span><span>if FALSE</span></div>
+        <div class="payrow"><span><b>⚡ AUTO-ACT</b></span><span class="pos">+100</span><span class="neg">−200</span></div>
+        <div class="payrow"><span><b>🙋 ESCALATE</b></span><span class="pos">+20</span><span class="neg">−10</span></div>
+        <div class="payrow"><span><b>⏭ SKIP</b></span><span>0</span><span>0</span></div>
+      </div>
+      <p class="hint" id="tauHint"></p>
+      <button class="btn primary" id="gstart">▸ START DUEL</button>
+    </div>
+    <div id="gboard" class="gboard" style="display:none">
+      <div class="gstat"><span class="gk">ROUND</span><span class="gv" id="gRound">1/10</span></div>
+      <div class="gstat"><span class="gk">POINTS</span><span class="gv" id="gPoints">+0</span></div>
+      <div class="gstat"><span class="gk">BRIER · YOU</span><span class="gv" id="gBrierYou">—</span></div>
+      <div class="gstat"><span class="gk">BRIER · ENG</span><span class="gv" id="gBrierEng">—</span></div>
+    </div>
+    <div id="gstage"></div>
+  </div>
+
+  <div id="playgroundView" style="display:none">
 
   <div class="card">
     <h2>① State — the situation to judge</h2>
@@ -143,10 +214,11 @@
   <button class="btn primary" id="decide" disabled>▸ DECIDE</button>
 
   <div id="results" style="margin-top:16px"></div>
+  </div><!-- /playgroundView -->
 
   <details class="how">
     <summary>How this works (honest version)</summary>
-    <p><b>What's real:</b> a quantized NLI model (<code>Xenova/nli-deberta-v3-xsmall</code>) runs 100% in your browser via Transformers.js. Each primitive maps to entailment: <i>Noul</i> = P(statement is true | state); <i>Choice</i> = entailment per option, normalized; <i>Score</i> = distribution over scale labels with the expected value reported. All questions run in parallel — the "single forward pass" spirit.</p>
+    <p><b>What's real:</b> a quantized NLI model (<code>Xenova/nli-deberta-v3-xsmall</code>) runs 100% in your browser via Transformers.js. Each primitive maps to entailment: <i>Noul</i> = P(statement is true | state); <i>Choice</i> = entailment per option, normalized; <i>Score</i> = distribution over scale labels with the expected value reported. All questions run in parallel — the "single forward pass" spirit. <i>Choice</i> also reports an entropy-based confidence, mirroring Jev's <code>confidence</code> field. The Calibration Duel scores both you and the engine with the Brier score — the proper scoring rule RLCD optimizes — so you can watch calibration (or the lack of it) happen live.</p>
     <p><b>What's not real Jev:</b> Jev trains with RLCD so its probabilities are <i>calibrated</i>; these are raw model scores — demo-grade, not decision-grade. Jev answers everything in one true forward pass; here we batch parallel calls.</p>
     <p><b>The takeaway is the mechanism:</b> <code>decision = model.decide(state)</code> with uncertainty exposed, and a threshold deciding autonomy. That's the idea worth stealing.</p>
   </details>
@@ -356,9 +428,12 @@ async function runChoice(state, q){
   });
   const byLabel = Object.fromEntries(zsPairs(out));
   const probs = norm(options.map(o => byLabel[o] ?? 0));
+  const entropy = -probs.reduce((a, p) => a + (p > 0 ? p * Math.log(p) : 0), 0);
+  const conf = 1 - entropy / Math.log(probs.length); // entropy-based confidence, like Jev's
   return {
     kind: 'choice',
-    dist: options.map((o, i) => ({ label: o, p: probs[i] })).sort((a, b) => b.p - a.p)
+    dist: options.map((o, i) => ({ label: o, p: probs[i] })).sort((a, b) => b.p - a.p),
+    conf
   };
 }
 
@@ -450,7 +525,7 @@ function renderResults(results, tau, totalMs){
     card.innerHTML =
       `<div class="rhead">${badge}<span class="q">${escapeHtml(q.text || q.type)}</span>${verdict}</div>` +
       bodyHtml +
-      `<div class="meta">top p = ${topP.toFixed(3)} · τ = ${tau.toFixed(2)} · ${r.ms}ms</div>`;
+      `<div class="meta">top p = ${topP.toFixed(3)}${r.conf != null ? ` · conf ${r.conf.toFixed(2)} (entropy)` : ''} · τ = ${tau.toFixed(2)} · ${r.ms}ms</div>`;
     box.appendChild(card);
   });
 
@@ -482,6 +557,175 @@ function renderResults(results, tau, totalMs){
 }
 
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- game: calibration duel ---------- */
+const STATEMENTS = [
+  { t: 'Water boils at 100°C at sea level.', a: true },
+  { t: 'Bananas are berries, botanically speaking.', a: true },
+  { t: 'Strawberries are berries, botanically speaking.', a: false },
+  { t: 'Cleopatra lived closer in time to the Moon landing than to the construction of the pyramids.', a: true },
+  { t: 'Sharks are older than trees.', a: true },
+  { t: 'There are more possible chess games than atoms in the observable universe.', a: true },
+  { t: 'Octopuses have three hearts.', a: true },
+  { t: 'The inventor of the Pringles can is buried in a Pringles can.', a: true },
+  { t: 'Venus is the hottest planet in the solar system.', a: true },
+  { t: "Scotland's national animal is the unicorn.", a: true },
+  { t: 'Wombat poop is cube-shaped.', a: true },
+  { t: 'A day on Venus is longer than a year on Venus.', a: true },
+  { t: 'The dot over the lowercase letter i has a name: tittle.', a: true },
+  { t: 'Sound travels faster in water than in air.', a: true },
+  { t: 'Honey never spoils; edible honey was found in ancient Egyptian tombs.', a: true },
+  { t: 'A group of flamingos is called a flamboyance.', a: true },
+  { t: 'The word "robot" comes from a Czech word for forced labor.', a: true },
+  { t: 'The Moon is slowly moving away from Earth.', a: true },
+  { t: 'Tomatoes are fruits, botanically speaking.', a: true },
+  { t: 'Humans share about 60% of their DNA with bananas.', a: true },
+  { t: 'The Great Wall of China is visible from the Moon with the naked eye.', a: false },
+  { t: 'Goldfish have a three-second memory.', a: false },
+  { t: 'Napoleon was unusually short for a Frenchman of his time.', a: false },
+  { t: 'Lightning never strikes the same place twice.', a: false },
+  { t: 'Coca-Cola was originally green.', a: false },
+  { t: 'Mount Everest is the tallest mountain on Earth from base to peak.', a: false },
+  { t: "The Rubik's Cube was invented in Japan.", a: false },
+  { t: 'Albert Einstein failed mathematics in school.', a: false },
+  { t: 'Bulls are enraged by the color red.', a: false },
+  { t: 'The first oranges grown in Asia were orange in color.', a: false }
+];
+const G_ROUNDS = 10;
+const PAY = { actHit: 100, actMiss: -200, escHit: 20, escMiss: -10 };
+/* optimal thresholds from the stakes: act iff EU(act) > EU(esc), esc iff EU(esc) > 0 */
+const TAU_LO = (0 - PAY.escMiss) / (PAY.escHit - PAY.escMiss);
+const TAU_HI = (PAY.escMiss - PAY.actMiss) / ((PAY.actHit - PAY.escHit) + (PAY.escMiss - PAY.actMiss));
+let G = null;
+
+function gid(id){ return document.getElementById(id); }
+function pct0(x){ return Math.round(x * 100) + '%'; }
+
+function switchMode(m){
+  const game = m === 'game';
+  gid('gameView').style.display = game ? '' : 'none';
+  gid('playgroundView').style.display = game ? 'none' : '';
+  gid('tabGame').classList.toggle('active', game);
+  gid('tabLab').classList.toggle('active', !game);
+}
+
+function startGame(){
+  const pool = [...STATEMENTS];
+  for (let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  G = { i: 0, points: 0, youB: 0, engB: 0, n: 0, queue: pool.slice(0, G_ROUNDS), hist: [], lock: null };
+  gid('ghero').style.display = 'none';
+  gid('gboard').style.display = 'grid';
+  updateBoard();
+  renderGuess();
+}
+
+function updateBoard(){
+  gid('gRound').textContent = Math.min(G.i + 1, G_ROUNDS) + '/' + G_ROUNDS;
+  gid('gPoints').textContent = (G.points >= 0 ? '+' : '') + G.points;
+  gid('gBrierYou').textContent = G.n ? G.youB.toFixed(3) : '—';
+  gid('gBrierEng').textContent = G.n ? G.engB.toFixed(3) : '—';
+}
+
+function renderGuess(){
+  const s = G.queue[G.i];
+  gid('gstage').innerHTML =
+    `<div class="card"><div class="gstmt">&ldquo;${escapeHtml(s.t)}&rdquo;</div>` +
+    `<label class="glabel">YOUR P &mdash; STATEMENT IS TRUE</label>` +
+    `<div class="gslider"><input type="range" id="gpslider" min="0" max="100" value="50"><span class="gtauval" id="gpval">50%</span></div>` +
+    `<button class="btn primary" id="glock">LOCK IN &rarr;</button>` +
+    `<p class="hint">No hedging: your Brier score this round is (p &minus; truth)&sup2;. Say what you actually believe.</p></div>`;
+  const slider = gid('gpslider'), val = gid('gpval');
+  slider.addEventListener('input', () => { val.textContent = slider.value + '%'; });
+  gid('glock').addEventListener('click', () => lockGuess(parseInt(slider.value, 10) / 100));
+}
+
+async function engineNoul(statement){
+  const out = await classifier('Judge whether the following statement is factually true.', ['true', 'false'], {
+    hypothesis_template: statement + ' This statement is {}.',
+    multi_label: false
+  });
+  const m = Object.fromEntries(zsPairs(out));
+  return norm([m['true'] ?? 0, m['false'] ?? 0])[0];
+}
+
+async function lockGuess(p){
+  G.lock = { p };
+  gid('gstage').innerHTML = `<div class="card"><div class="gthink">engine is thinking&hellip;</div></div>`;
+  await ensureModel();
+  if (!classifier){
+    gid('gstage').innerHTML = `<div class="card"><div class="gthink">Engine failed to load. Check your connection and reload.</div></div>`;
+    return;
+  }
+  try { G.lock.ep = await engineNoul(G.queue[G.i].t); }
+  catch (e){ console.error(e); G.lock.ep = 0.5; }
+  renderAct();
+}
+
+function renderAct(){
+  const s = G.queue[G.i], L = G.lock;
+  gid('gstage').innerHTML =
+    `<div class="card"><div class="gstmt">&ldquo;${escapeHtml(s.t)}&rdquo;</div>` +
+    `<div class="gprobs">` +
+    `<div class="gp"><span>YOU</span><b>${Math.round(L.p * 100)}%</b></div>` +
+    `<div class="gp"><span>ENGINE</span><b>${Math.round(L.ep * 100)}%</b><div class="track"><i style="width:${(L.ep * 100).toFixed(1)}%"></i></div></div>` +
+    `</div><div class="gact">` +
+    `<button class="btn act" data-gact="act">&#9889; AUTO-ACT<span>+100 / &minus;200</span></button>` +
+    `<button class="btn act" data-gact="esc">&#128587; ESCALATE<span>+20 / &minus;10</span></button>` +
+    `<button class="btn act" data-gact="skip">&#9195; SKIP<span>0 / 0</span></button>` +
+    `</div><p class="hint">Stakes say: SKIP below ${pct0(TAU_LO)} &middot; ESCALATE ${pct0(TAU_LO)}&ndash;${pct0(TAU_HI)} &middot; ACT above ${pct0(TAU_HI)}</p></div>`;
+  gid('gstage').querySelectorAll('[data-gact]').forEach(b =>
+    b.addEventListener('click', () => resolveRound(b.dataset.gact)));
+}
+
+function resolveRound(action){
+  const s = G.queue[G.i], L = G.lock;
+  const truth = s.a ? 1 : 0;
+  const pts = action === 'act' ? (truth ? PAY.actHit : PAY.actMiss)
+    : action === 'esc' ? (truth ? PAY.escHit : PAY.escMiss) : 0;
+  const bYou = (L.p - truth) ** 2, bEng = (L.ep - truth) ** 2;
+  G.points += pts;
+  G.youB = (G.youB * G.n + bYou) / (G.n + 1);
+  G.engB = (G.engB * G.n + bEng) / (G.n + 1);
+  G.n++;
+  const aname = action === 'act' ? 'AUTO-ACT' : action === 'esc' ? 'ESCALATE' : 'SKIP';
+  G.hist.push({ truth, p: L.p, ep: L.ep, action: aname, pts });
+  updateBoard();
+  const last = G.i === G_ROUNDS - 1;
+  gid('gstage').innerHTML =
+    `<div class="card"><div class="greveal ${truth ? 'true' : 'false'}">${truth ? '&#10003; TRUE' : '&#10007; FALSE'}</div>` +
+    `<div class="gstmt">&ldquo;${escapeHtml(s.t)}&rdquo;</div>` +
+    `<div class="gdelta ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts} pts</div>` +
+    `<div class="gdetail">${aname} &middot; you said ${Math.round(L.p * 100)}% (Brier ${bYou.toFixed(3)}) &middot; engine said ${Math.round(L.ep * 100)}% (Brier ${bEng.toFixed(3)})</div>` +
+    `<button class="btn primary" id="gnext">${last ? 'SEE RESULTS &rarr;' : 'NEXT &rarr;'}</button></div>`;
+  gid('gnext').addEventListener('click', () => { G.i++; if (last) renderEnd(); else renderGuess(); });
+}
+
+function renderEnd(){
+  const win = G.youB < G.engB;
+  let best = parseInt(localStorage.getItem('s1duel_best') || '-999999', 10);
+  best = Math.max(best, G.points);
+  localStorage.setItem('s1duel_best', String(best));
+  const rows = G.hist.map((h, i) =>
+    `R${i + 1} ${h.truth ? '&#10003;' : '&#10007;'} ${h.action} ${h.pts >= 0 ? '+' : ''}${h.pts} &middot; you ${Math.round(h.p * 100)}% &middot; eng ${Math.round(h.ep * 100)}%`).join('<br>');
+  gid('gstage').innerHTML =
+    `<div class="card"><h2>&#127937; Duel over</h2>` +
+    `<div class="gverdict">${win ? '&#127942; You were better calibrated than the engine.' : '&#129302; The engine was better calibrated. It trains for this; you just met it.'}</div>` +
+    `<div class="gfinal">Points: <b>${G.points >= 0 ? '+' : ''}${G.points}</b> (best: ${best >= 0 ? '+' : ''}${best})<br>` +
+    `Brier &mdash; you <b>${G.youB.toFixed(3)}</b> &middot; engine <b>${G.engB.toFixed(3)}</b> (lower wins)<br>` +
+    `<span style="font-size:12px">Brier = mean((p &minus; truth)&sup2;): the proper scoring rule RLCD optimizes. This is why Jev's probabilities mean something.</span></div>` +
+    `<div class="ghist">${rows}</div>` +
+    `<div class="gbtnrow"><button class="btn" id="gshare">&#10548; Copy result</button>` +
+    `<button class="btn primary" id="gagain">&#10227; PLAY AGAIN</button></div></div>`;
+  gid('gshare').addEventListener('click', () => {
+    const txt = `I dueled the engine at coacerva.com\n10 statements, ${G_ROUNDS} rounds · points ${G.points >= 0 ? '+' : ''}${G.points}\nBrier: me ${G.youB.toFixed(3)} vs engine ${G.engB.toFixed(3)} — ${win ? 'I was better calibrated' : 'engine was better calibrated'}\nRematch?`;
+    if (navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(txt).then(() => { gid('gshare').textContent = '✓ Copied'; });
+  });
+  gid('gagain').addEventListener('click', startGame);
+}
 
 /* ---------- wire up ---------- */
 $('addChoice').addEventListener('click', () => newQuestion('choice'));
@@ -515,6 +759,10 @@ $('decide').addEventListener('click', async () => {
   btn.textContent = '▸ DECIDE';
 });
 
+gid('tabGame').addEventListener('click', () => switchMode('game'));
+gid('tabLab').addEventListener('click', () => switchMode('lab'));
+gid('gstart').addEventListener('click', startGame);
+gid('tauHint').textContent = `With these stakes the math says: SKIP below ${pct0(TAU_LO)} · ESCALATE ${pct0(TAU_LO)}–${pct0(TAU_HI)} · AUTO-ACT above ${pct0(TAU_HI)}. The thresholds aren't vibes — they fall out of the payoffs.`;
 loadPreset('hotdog');
 ensureModel();
 </script>
