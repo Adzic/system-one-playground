@@ -89,6 +89,14 @@
   details.how code{font-family:var(--mono);color:var(--accent);font-size:13px}
   footer{margin-top:26px;color:var(--muted);font-size:12px;font-family:var(--mono);text-align:center}
   .empty{color:var(--muted);font-family:var(--mono);font-size:13px;text-align:center;padding:20px}
+  .callrow{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .callrow .callabel{font-family:var(--mono);font-size:12px;color:var(--muted);flex:none}
+  .callrow select{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;min-width:0}
+  .callout{margin-top:10px;font-size:13.5px;border-radius:10px;padding:9px 12px;border:1px solid var(--line);background:rgba(94,234,212,.05)}
+  .callout.win{border-color:rgba(52,211,153,.5);color:var(--green)}
+  .callout.lose{border-color:rgba(251,191,36,.5);color:var(--amber)}
+  .callout b{color:var(--text)}
 </style>
 </head>
 <body>
@@ -107,6 +115,8 @@
       <button class="chip" data-preset="hotdog">🌭 hot dog</button>
       <button class="chip" data-preset="support">🎧 support triage</button>
       <button class="chip" data-preset="movie">🎬 movie night</button>
+      <button class="chip" data-preset="pizza">🍕 pizza wars</button>
+      <button class="chip" data-preset="trip">✈️ weekend trip</button>
     </div>
   </div>
 
@@ -118,7 +128,7 @@
       <button class="btn" id="addScore">+ Score</button>
       <button class="btn" id="addNoul">+ Noul</button>
     </div>
-    <p class="hint"><b>Choice</b> picks one of N options · <b>Score</b> rates on a scale · <b>Noul</b> answers yes/no as a probability. Every question is answered in parallel.</p>
+    <p class="hint"><b>Choice</b> picks one of N options · <b>Score</b> rates on a scale · <b>Noul</b> answers yes/no as a probability. Every question is answered in parallel. 🎯 Set <b>your call</b> on a Choice, hit DECIDE, and see if the engine agrees with you.</p>
   </div>
 
   <div class="card">
@@ -189,7 +199,7 @@ async function ensureModel(){
 /* ---------- question model ---------- */
 function newQuestion(type){
   const q = { id: ++qseq, type, text: '' };
-  if (type === 'choice') { q.text = 'Pick one'; q.options = ['Option A', 'Option B']; }
+  if (type === 'choice') { q.text = 'Pick one'; q.options = ['Option A', 'Option B']; q.yourCall = ''; }
   if (type === 'score')  { q.text = 'Rate it'; q.labels = 'calm, annoyed, frustrated, angry, furious'; }
   if (type === 'noul')   { q.text = 'Is it true?'; q.statement = ''; }
   questions.push(q);
@@ -214,7 +224,11 @@ function renderQuestions(){
       body = q.options.map((op, i) =>
         `<div class="optrow"><input type="text" data-q="${q.id}" data-oi="${i}" value="${escapeAttr(op)}" placeholder="Option ${i+1}">` +
         `<button class="iconbtn" data-delopt="${q.id}:${i}" title="remove">✕</button></div>`
-      ).join('') + `<button class="mini" data-addopt="${q.id}">+ add option</button>`;
+      ).join('') + `<button class="mini" data-addopt="${q.id}">+ add option</button>` +
+      `<div class="callrow"><span class="callabel">🎯 your call</span><select data-qcall="${q.id}">` +
+      `<option value="">— call it before DECIDE —</option>` +
+      q.options.map(o => `<option value="${escapeAttr(o)}"${o === q.yourCall ? ' selected' : ''}>${escapeHtml(o) || '(empty)'}</option>`).join('') +
+      `</select></div>`;
     } else if (q.type === 'score') {
       body = `<input type="text" data-qlabels="${q.id}" value="${escapeAttr(q.labels)}" placeholder="comma-separated scale labels, low → high">` +
         `<p class="hint">Scale labels from low to high, e.g. <i>terrible, bad, ok, good, amazing</i>. Reported as expected value.</p>`;
@@ -234,6 +248,8 @@ function renderQuestions(){
       const q = findQ(+e.target.dataset.q);
       q.options[+e.target.dataset.oi] = e.target.value;
     }));
+  list.querySelectorAll('[data-qcall]').forEach(el =>
+    el.addEventListener('change', e => { findQ(+e.target.dataset.qcall).yourCall = e.target.value; }));
   list.querySelectorAll('[data-qlabels]').forEach(el =>
     el.addEventListener('input', e => { findQ(+e.target.dataset.qlabels).labels = e.target.value; }));
   list.querySelectorAll('[data-qstmt]').forEach(el =>
@@ -280,6 +296,22 @@ const PRESETS = {
     questions: [
       { type: 'choice', text: 'Pick the movie', options: ['Dune: Part Two', 'The Hangover', 'Get Out', 'Guardians of the Galaxy'] }
     ]
+  },
+  pizza: {
+    state: 'Friday night, one pizza to order for the whole group. Half the table wants meat, someone is vegetarian, and one person has very strong opinions about pineapple.',
+    questions: [
+      { type: 'choice', text: 'Order the pizza', options: ['Pepperoni', 'Margherita', 'BBQ chicken', 'Veggie supreme'] },
+      { type: 'noul', text: 'Pineapple verdict', statement: 'Pineapple belongs on pizza' },
+      { type: 'score', text: 'Drama level', labels: 'chill, tense, heated, explosive' }
+    ]
+  },
+  trip: {
+    state: 'Long weekend, four friends, one shared calendar. Everyone is burned out and the group chat is 200 messages of pure indecision.',
+    questions: [
+      { type: 'choice', text: 'Pick the trip', options: ['Beach house', 'Mountain cabin', 'City break', 'Staycation'] },
+      { type: 'score', text: 'Group hype', labels: 'meh, curious, excited, all-in' },
+      { type: 'noul', text: 'Will it happen?', statement: 'This trip will actually happen' }
+    ]
   }
 };
 
@@ -289,7 +321,7 @@ function loadPreset(name){
   questions = [];
   p.questions.forEach(q => {
     const nq = { id: ++qseq, type: q.type, text: q.text };
-    if (q.type === 'choice') nq.options = [...q.options];
+    if (q.type === 'choice') { nq.options = [...q.options]; nq.yourCall = ''; }
     if (q.type === 'score') nq.labels = q.labels;
     if (q.type === 'noul') nq.statement = q.statement;
     questions.push(nq);
@@ -307,6 +339,14 @@ function norm(scores){
   return scores.map(x => x / s);
 }
 
+/* zero-shot pipeline returns {labels, scores}; text-classification returns [{label, score}] */
+function zsPairs(out){
+  if (Array.isArray(out)) return out.map(o => [o.label, o.score]);
+  if (out && Array.isArray(out.labels) && Array.isArray(out.scores))
+    return out.labels.map((l, i) => [l, out.scores[i]]);
+  throw new Error('Unexpected classifier output shape.');
+}
+
 async function runChoice(state, q){
   const options = q.options.map(o => o.trim()).filter(Boolean);
   if (options.length < 2) throw new Error('Choice needs at least 2 options.');
@@ -314,7 +354,7 @@ async function runChoice(state, q){
     hypothesis_template: 'The best choice is {}.',
     multi_label: false
   });
-  const byLabel = Object.fromEntries(out.map(o => [o.label, o.score]));
+  const byLabel = Object.fromEntries(zsPairs(out));
   const probs = norm(options.map(o => byLabel[o] ?? 0));
   return {
     kind: 'choice',
@@ -330,7 +370,7 @@ async function runScore(state, q){
     hypothesis_template: 'This text is {}.',
     multi_label: false
   });
-  const byLabel = Object.fromEntries(out.map(o => [o.label, o.score]));
+  const byLabel = Object.fromEntries(zsPairs(out));
   const probs = norm(labels.map(l => byLabel[l] ?? 0));
   const expected = probs.reduce((a, p, i) => a + p * (i + 1), 0);
   return { kind: 'score', dist: labels.map((l, i) => ({ label: l, p: probs[i] })), expected };
@@ -343,7 +383,7 @@ async function runNoul(state, q){
     hypothesis_template: statement + ' This statement is {}.',
     multi_label: false
   });
-  const byLabel = Object.fromEntries(out.map(o => [o.label, o.score]));
+  const byLabel = Object.fromEntries(zsPairs(out));
   const [pTrue, pFalse] = norm([byLabel['true'] ?? 0, byLabel['false'] ?? 0]);
   return { kind: 'noul', pTrue, pFalse };
 }
@@ -387,6 +427,11 @@ function renderResults(results, tau, totalMs){
         `<div class="opt${i === 0 ? ' top' : ''}"><div class="lbl"><span>${escapeHtml(d.label)}</span><span class="p">${pct(d.p)}</span></div>` +
         `<div class="track"><i style="width:${(d.p * 100).toFixed(1)}%"></i></div></div>`
       ).join('');
+      if (q.yourCall && q.options.includes(q.yourCall)) {
+        const agreed = r.dist[0].label === q.yourCall;
+        bodyHtml += `<div class="callout ${agreed ? 'win' : 'lose'}">🎯 You called <b>${escapeHtml(q.yourCall)}</b> — ` +
+          (agreed ? 'engine agrees ✓' : `engine overrules: <b>${escapeHtml(r.dist[0].label)}</b> (${pct(r.dist[0].p)})`) + `</div>`;
+      }
     } else if (r.kind === 'score') {
       bodyHtml = `<div class="bignum">≈ ${r.expected.toFixed(1)} <small>/ ${r.dist.length}</small></div>` +
         r.dist.map(d =>
@@ -410,6 +455,29 @@ function renderResults(results, tau, totalMs){
   });
 
   sum.innerHTML = `<b>${auto}/${results.length}</b> decisions autonomous at τ = ${tau.toFixed(2)} · ${results.length - auto} escalated · total ${totalMs}ms`;
+  const share = document.createElement('button');
+  share.className = 'btn';
+  share.style.marginBottom = '14px';
+  share.textContent = '⧉ Copy result for the group chat';
+  share.addEventListener('click', () => {
+    const lines = ['SYSTEM ONE · coacerva.com', 'State: ' + $('state').value.trim()];
+    results.forEach((r, i) => {
+      const top = r.kind === 'choice' ? r.dist[0]
+        : r.kind === 'score' ? { label: '≈ ' + r.expected.toFixed(1), p: Math.max(...r.dist.map(d => d.p)) }
+        : { label: r.pTrue >= 0.5 ? 'TRUE' : 'FALSE', p: Math.max(r.pTrue, r.pFalse) };
+      lines.push(`${i + 1}. [${r.q.type.toUpperCase()}] ${r.q.text || r.q.type} → ${top.label} (${pct(top.p)}) ${top.p >= tau ? '✓ AUTO-ACT' : '? ESCALATE'}`);
+    });
+    lines.push(`${auto}/${results.length} autonomous at τ = ${tau.toFixed(2)}`);
+    const txt = lines.join('\n');
+    const done = () => {
+      share.textContent = '✓ Copied — paste it in the chat';
+      setTimeout(() => { share.textContent = '⧉ Copy result for the group chat'; }, 2500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(txt).then(done).catch(() => prompt('Copy your result:', txt));
+    else prompt('Copy your result:', txt);
+  });
+  box.appendChild(share);
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -447,7 +515,7 @@ $('decide').addEventListener('click', async () => {
   btn.textContent = '▸ DECIDE';
 });
 
-loadPreset('support');
+loadPreset('hotdog');
 ensureModel();
 </script>
 </body>
