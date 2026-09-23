@@ -14,6 +14,18 @@ An autonomy-threshold slider marks each decision `AUTO-ACT` or `ESCALATE`.
 
 Presets: 🌭 hot dog (the default — settle the sandwich debate), 🎧 support triage, 🎬 movie night, 🍕 pizza wars, ✈️ weekend trip.
 
+## 🎮 Calibration Duel (the game)
+
+The default tab. Ten statements, true or false. Each round:
+
+1. You lock in **your** P(true).
+2. The engine reveals **its** P(true) — same tiny NLI model, running live.
+3. You choose **AUTO-ACT** (+100/−200), **ESCALATE** (+20/−10), or **SKIP** (0/0).
+
+Two leaderboards: **points** (decision quality under uncertainty) and **Brier score** (calibration — mean((p − truth)²), lower wins; it's the scoring rule RLCD trains on). With these stakes the optimal policy is SKIP below 33%, ESCALATE 33–70%, AUTO-ACT above 70% — the thresholds fall out of the payoffs, not vibes.
+
+Closer to real Jev than the playground: entropy-based `confidence` on Choice (mirrors Jev's response contract), tiered action thresholds (the act / ask-human / do-nothing pattern), and calibration measured with a proper scoring rule instead of asserted.
+
 ## How it works
 
 The page loads a small open-weights NLI model (`Xenova/nli-deberta-v3-xsmall`) via Transformers.js and runs inference locally in your browser using ONNX Runtime Web. First load downloads the model once and caches it; afterwards it works offline.
