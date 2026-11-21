@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Interview Room — Coacerva</title>
+<style>
+  :root{
+    --bg:#0a0d13; --panel:#111724; --panel2:#0d121d; --line:#223047;
+    --text:#e9edf5; --muted:#8d99b0; --accent:#5eead4;
+    --amber:#fbbf24; --green:#34d399; --violet:#a78bfa; --red:#f87171;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);
+    background:radial-gradient(1200px 600px at 80% -10%,#12233a 0%,var(--bg) 55%) fixed,var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 18px 80px}
+  a{color:var(--accent)}
+  .topnav{font-family:var(--mono);font-size:12.5px;margin:0 0 14px}
+  .topnav a{color:var(--muted);text-decoration:none}
+  .topnav a:hover{color:var(--accent)}
+  .logo{font-family:var(--mono);font-weight:700;letter-spacing:.14em;font-size:13px;color:var(--accent);
+    border:1px solid var(--line);padding:8px 12px;border-radius:10px;background:rgba(94,234,212,.06);display:inline-block}
+  h1{font-size:29px;margin:14px 0 4px;letter-spacing:-.01em}
+  .pnum{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted)}
+  .framing{font-size:16.5px;color:var(--text);max-width:700px}
+  .framing b{color:var(--accent)}
+  .instruction{color:var(--muted);font-size:14.5px;max-width:700px;margin:0 0 18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:12.5px;font-family:var(--mono);letter-spacing:.12em;color:var(--muted);margin:0 0 10px;text-transform:uppercase}
+  .qnum{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted);margin:0 0 6px}
+  .q{font-size:20.5px;line-height:1.4;margin:0 0 12px;letter-spacing:-.01em}
+  .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;border:1px solid var(--line);background:var(--panel);
+    color:var(--text);border-radius:10px;padding:9px 14px;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .ladder{display:none;margin-top:14px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .ladder.open{display:block}
+  .ladder .lk{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--accent);margin-bottom:4px}
+  .ladder p{margin:0;font-size:15px}
+  .closing p{margin:0 0 10px;font-size:15.5px}
+  .closing p:last-child{margin-bottom:0}
+  footer{margin-top:26px;color:var(--muted);font-size:12.5px;font-family:var(--mono);text-align:center;line-height:1.9}
+  footer a{color:var(--muted)}
+  footer a:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="topnav"><a href="index.html">&larr; Coacerva home</a></p>
+  <span class="logo">COACERVA</span>
+  <p class="pnum" style="margin:12px 0 0">THE INTERVIEW ROOM · NO SIMULATIONS</p>
+  <h1>The Interview Room</h1>
+  <p class="framing">Seven questions in the manner of <b>Ilya Sutskever's</b> interviews, rebuilt for data scientists. <b>Reconstructions, not quotations</b>: the method is the documented one, a single simple question followed by why, five levels down.</p>
+  <p class="instruction">The gym's problems are simulations. This page is the opposite. Answer each question out loud, or in your head, before you open the ladder. Reading the ladder first is cheating yourself.</p>
+
+  <div class="card">
+    <p class="qnum">QUESTION 1</p>
+    <p class="q">Your model scores 95 in validation and 90 in production. Where did the five points go?</p>
+    <button class="btn" type="button" data-ladder-btn aria-expanded="false">Show where the follow-up goes</button>
+    <div class="ladder">
+      <span class="lk">THE LADDER</span>
+      <p>He is listening for whether you reach for one cause or enumerate the real ones: leakage, distribution shift, selection on the validation set. And whether you can say how you would prove which one it is, not just name it.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="qnum">QUESTION 2</p>
+    <p class="q">You looked at the test set three times while building this. How much do you trust the number now, and how much less than if you had looked once?</p>
+    <button class="btn" type="button" data-ladder-btn aria-expanded="false">Show where the follow-up goes</button>
+    <div class="ladder">
+      <span class="lk">THE LADDER</span>
+      <p>The follow up is the test. Can you put a rough magnitude on adaptive overfitting, or do you just say "it is contaminated" and stop? Trust is a quantity here, not a vibe.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="qnum">QUESTION 3</p>
+    <p class="q">Two models, same AUC. One has far better log loss. Which ships, and what is log loss actually measuring?</p>
+    <button class="btn" type="button" data-ladder-btn aria-expanded="false">Show where the follow-up goes</button>
+    <div class="ladder">
+      <span class="lk">THE LADDER</span>
+      <p>He wants the bits answer: log loss is a code length, an expected number of bits to encode the true labels, and it punishes confident wrongness in a way ranking metrics forgive. Then: when does that matter for the decision the model feeds?</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="qnum">QUESTION 4</p>
+    <p class="q">Your classifier says 0.8. What does that sentence mean, and how would you check whether it is true?</p>
+    <button class="btn" type="button" data-ladder-btn aria-expanded="false">Show where the follow-up goes</button>
+    <div class="ladder">
+      <span class="lk">THE LADDER</span>
+      <p>Calibration, stated plainly. Most candidates can define it; the ladder goes to reliability curves, base rates, and what quietly breaks calibration in production data.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="qnum">QUESTION 5</p>
+    <p class="q">When would you not trust cross validation?</p>
+    <button class="btn" type="button" data-ladder-btn aria-expanded="false">Show where the follow-up goes</button>
+    <div class="ladder">
+      <span class="lk">THE LADDER</span>
+      <p>One line, and it finds everyone who has ever leaked. He is listening for grouped data, time structure, preprocessing fit on the full set, and the same person or member appearing in both train and test.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="qnum">QUESTION 6</p>
+    <p class="q">You double the training data and nothing improves. Name the possible reasons, and how you would tell them apart.</p>
+    <button class="btn" type="button" data-ladder-btn aria-expanded="false">Show where the follow-up goes</button>
+    <div class="ladder">
+      <span class="lk">THE LADDER</span>
+      <p>Noise floor, label quality, capacity, wrong features, optimization. The separating experiments are the answer; the list is just the door.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="qnum">QUESTION 7</p>
+    <p class="q">Why does averaging a hundred trees beat one tree, and when does it stop helping?</p>
+    <button class="btn" type="button" data-ladder-btn aria-expanded="false">Show where the follow-up goes</button>
+    <div class="ladder">
+      <span class="lk">THE LADDER</span>
+      <p>Everyone can say variance reduction. He keeps going until you hit correlation between the trees as the binding constraint, which is where the recitation usually ends.</p>
+    </div>
+  </div>
+
+  <div class="card closing">
+    <h2>What is not here</h2>
+    <p>Notice what is absent: no frameworks, no library questions, nothing about this year's tooling.</p>
+    <p>Every question can be answered at a whiteboard by someone who understands their own daily work, and every one has a floor that drops out if you only know the vocabulary.</p>
+  </div>
+
+  <footer>
+    <a href="index.html">&larr; Coacerva home</a> · <a href="duel.html">Calibration Duel — the original game &rarr;</a><br>
+    coacerva · everything runs in your browser · progress is saved on this device only
+  </footer>
+</div>
+
+<script>
+(function(){
+  var buttons = document.querySelectorAll('[data-ladder-btn]');
+  buttons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var ladder = btn.parentElement.querySelector('.ladder');
+      if (!ladder) return;
+      var open = ladder.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.textContent = open ? 'Hide the ladder' : 'Show where the follow-up goes';
+    });
+  });
+})();
+</script>
+</body>
+</html>
