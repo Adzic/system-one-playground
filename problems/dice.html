@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Even Dice Trap — Coacerva</title>
+<style>
+  :root{
+    --bg:#0a0d13; --panel:#111724; --panel2:#0d121d; --line:#223047;
+    --text:#e9edf5; --muted:#8d99b0; --accent:#5eead4;
+    --amber:#fbbf24; --green:#34d399; --violet:#a78bfa; --red:#f87171;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);
+    background:radial-gradient(1200px 600px at 80% -10%,#12233a 0%,var(--bg) 55%) fixed,var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 18px 80px}
+  a{color:var(--accent)}
+  .topnav{font-family:var(--mono);font-size:12.5px;margin:0 0 14px}
+  .topnav a{color:var(--muted);text-decoration:none}
+  .topnav a:hover{color:var(--accent)}
+  .logo{font-family:var(--mono);font-weight:700;letter-spacing:.14em;font-size:13px;color:var(--accent);
+    border:1px solid var(--line);padding:8px 12px;border-radius:10px;background:rgba(94,234,212,.06);display:inline-block}
+  h1{font-size:29px;margin:14px 0 4px;letter-spacing:-.01em}
+  .pnum{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted)}
+  .stmt{font-size:16.5px;color:var(--text);max-width:700px}
+  .stmt b{color:var(--accent)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:12.5px;font-family:var(--mono);letter-spacing:.12em;color:var(--muted);margin:0 0 10px;text-transform:uppercase}
+  .card h2 .beatno{color:var(--accent)}
+  input[type=number]{background:var(--panel2);border:1px solid var(--line);
+    color:var(--text);border-radius:10px;padding:10px 12px;font-size:16px;font-family:var(--mono);width:180px}
+  input:focus{outline:none;border-color:var(--accent)}
+  .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;border:1px solid var(--line);background:var(--panel);
+    color:var(--text);border-radius:10px;padding:9px 14px;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#06251f;font-weight:700;font-size:15px;
+    padding:12px 20px;border-radius:12px;letter-spacing:.05em}
+  .btn.primary:not(:disabled):hover{filter:brightness(1.08);color:#06251f}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+  .err{color:var(--red);font-size:13.5px;margin-top:8px;display:none}
+  #lockmsg{border:1px dashed var(--line);border-radius:14px;padding:22px 16px;text-align:center;
+    color:var(--muted);font-family:var(--mono);font-size:13.5px;margin-bottom:14px}
+  .verdict{border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14.5px;border:1px solid var(--line);background:var(--panel2)}
+  .verdict.good{border-color:rgba(52,211,153,.5)}
+  .verdict.bad{border-color:rgba(251,191,36,.5)}
+  .statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 4px}
+  @media(max-width:640px){.statgrid{grid-template-columns:repeat(2,1fr)}}
+  .gstat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .gk{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted)}
+  .gv{display:block;font-family:var(--mono);font-size:19px;color:var(--accent);margin-top:2px}
+  .chartbox{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
+  .chartbox canvas{width:100%;height:auto;display:block}
+  .mech p,.atwork p{margin:0 0 10px;font-size:15px}
+  .mech p:last-child,.atwork p:last-child{margin-bottom:0}
+  code,.mono{font-family:var(--mono);color:var(--accent);font-size:.92em}
+  .formula{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;margin:0 0 10px;font-size:14px;color:var(--text);overflow-x:auto;white-space:nowrap}
+  .completebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .resetlink{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:12px;cursor:pointer;text-decoration:underline;padding:0}
+  .resetlink:hover{color:var(--red)}
+  footer{margin-top:26px;color:var(--muted);font-size:12px;font-family:var(--mono);text-align:center}
+  footer a{color:var(--muted)} footer a:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="topnav"><a href="../index.html">&larr; Coacerva home</a></p>
+  <span class="logo">COACERVA</span>
+  <p class="pnum" style="margin:12px 0 0">PROBLEM 2 · CONDITIONING</p>
+  <h1>The Even Dice Trap</h1>
+  <p class="stmt">You roll a fair six-sided die repeatedly until you roll a <b>6</b>, and then you stop. Given that <b>every single roll you observed, including the final 6, was an even number</b>, what is the expected total number of rolls?</p>
+
+  <div class="card">
+    <h2><span class="beatno">Beat 1</span> · Commit</h2>
+    <p class="hint" style="margin:0 0 12px">One number. Decimals are fine. Commit before the simulation unlocks, and notice what your gut reaches for.</p>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input type="number" id="commitNum" step="0.1" min="0" placeholder="e.g. 3">
+      <button class="btn primary" id="commitBtn" type="button">Lock in my answer &rarr;</button>
+    </div>
+    <p class="err" id="commitErr">Enter a number first.</p>
+  </div>
+
+  <div id="lockmsg">&#128274; Commit an answer above to unlock the simulation.</div>
+
+  <div id="rest" style="display:none">
+    <div class="card">
+      <h2><span class="beatno">Beat 2</span> · See it</h2>
+      <div class="verdict" id="verdict"></div>
+      <p style="margin:0">The simulation plays the game honestly: roll until the first 6, then throw the whole run away unless every roll was even. Only the surviving runs count, exactly as the condition demands. Watch where the running mean settles.</p>
+      <div class="statgrid">
+        <div class="gstat"><span class="gk">ACCEPTED RUNS</span><span class="gv" id="stRuns">0</span></div>
+        <div class="gstat"><span class="gk">RUNNING MEAN</span><span class="gv" id="stMean">—</span></div>
+        <div class="gstat"><span class="gk">ENDED IN 1 ROLL</span><span class="gv" id="stOne">—</span></div>
+        <div class="gstat"><span class="gk">ENDED IN 2 ROLLS</span><span class="gv" id="stTwo">—</span></div>
+      </div>
+      <div class="chartbox"><canvas id="trace" width="800" height="320"></canvas></div>
+      <div class="btnrow">
+        <button class="btn primary" id="run1k" type="button">Run 1,000 accepted games</button>
+        <button class="btn" id="run10k" type="button">Run 10,000 more</button>
+        <button class="btn" id="simReset" type="button">Reset simulation</button>
+      </div>
+      <p class="hint">About three quarters of all games get thrown away, because most games contain an odd roll somewhere. The condition is a filter, and filters change averages.</p>
+    </div>
+
+    <div class="card mech">
+      <h2><span class="beatno">Beat 3</span> · The mechanism</h2>
+      <p>The tempting answer is 3: every roll was even, so the die "effectively" had faces 2, 4, 6, and the expected wait for one face of three is 3. That reasoning is wrong, and it is worth seeing exactly where. Conditioning on all rolls being even does not rebuild the die. It reweights the possible histories, and it punishes long ones, because a long history has more chances to contain an odd roll and get disqualified.</p>
+      <p>Sort each roll into three kinds. Odd, probability 3/6. A 6, probability 1/6. Filler, meaning a 2 or a 4, probability 2/6. Filler rolls change nothing except the count. The condition holds exactly when the first <i>decisive</i> roll, the first roll that is odd or a 6, turns out to be the 6. And the number of filler rolls before that first decisive roll does not depend on which decisive face wins.</p>
+      <p>So count in two pieces. Filler arrives with probability 1/3 per roll against 2/3 for a decisive roll, so the expected number of fillers before the first decisive roll is (1/3)/(2/3) = 1/2. Add the final 6:</p>
+      <p class="formula">E[rolls | all even] = 1/2 + 1 = 3/2</p>
+      <p>Bayes agrees, as a check. The probability of stopping at roll n <i>and</i> satisfying the condition is (1/6)(1/3)<sup>n&minus;1</sup>, since each pre-final roll must land on 2 or 4 out of the live possibilities. Summing over n, the condition itself has probability 1/4. Dividing through leaves a geometric distribution with ratio 1/3, whose mean is 3/2, and whose first term says two thirds of all conditioned runs end in exactly one roll. That is the simulation's "ended in 1 roll" number, and it is the whole intuition: most conditioned worlds are the boring one where you simply roll a 6 immediately.</p>
+    </div>
+
+    <div class="card atwork">
+      <h2><span class="beatno">Beat 4</span> · At work</h2>
+      <p>Conditioning on what you observed is selection, and selection quietly reweights every average you compute afterward. Analyze only completed calls and you have conditioned on calls that did not get abandoned. Analyze only members who stayed enrolled and you have conditioned on survival. Analyze only trades, campaigns, or patients that made it into the dataset, and the dataset has already voted on which histories were allowed to be long. The dice version is harmless. The work version produces dashboards that describe the filtered world precisely, and the real world not at all. Whenever a number surprises you, the first question is not "is the math right" but "what did we condition on to get this sample."</p>
+    </div>
+
+    <div class="card">
+      <div class="completebar">
+        <button class="btn primary" id="markDone" type="button">Mark this problem complete</button>
+        <button class="resetlink" id="resetProblem" type="button">start this problem over</button>
+      </div>
+      <p class="hint" id="doneNote"></p>
+    </div>
+  </div>
+
+  <footer><a href="duplicate.html">← previous: Duplicate the Data</a> · <a href="../index.html">Coacerva home</a> · <a href="noise.html">next problem: The Noise Harvest →</a></footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var PID = 'dice', KEY = 'coacerva_progress';
+  function loadP(){ try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function saveP(p){ try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) {} }
+  function $(id){ return document.getElementById(id); }
+
+  var guess = null;
+
+  /* ---------- simulation ---------- */
+  var accepted = 0, sumN = 0, ones = 0, twos = 0, trace = [], running = false;
+  function oneGame(){
+    var n = 0, even = true;
+    while (true){
+      var r = 1 + Math.floor(Math.random() * 6);
+      n++;
+      if (r === 6) break;
+      if (r % 2 === 1) even = false;
+    }
+    return even ? n : 0;
+  }
+  function runBatch(target, done){
+    var targetTotal = accepted + target;
+    (function step(){
+      var t0 = performance.now();
+      while (accepted < targetTotal && performance.now() - t0 < 24){
+        for (var i = 0; i < 40 && accepted < targetTotal; i++){
+          var n = oneGame();
+          if (n > 0){
+            accepted++; sumN += n;
+            if (n === 1) ones++; if (n === 2) twos++;
+            if (accepted % 10 === 0) trace.push(sumN / accepted);
+          }
+        }
+      }
+      paint();
+      if (accepted < targetTotal) setTimeout(step, 0);
+      else { running = false; paintButtons(); if (done) done(); }
+    })();
+  }
+  function paint(){
+    $('stRuns').textContent = accepted.toLocaleString('en-US');
+    $('stMean').textContent = accepted ? (sumN / accepted).toFixed(3) : '—';
+    $('stOne').textContent = accepted ? (100 * ones / accepted).toFixed(1) + '%' : '—';
+    $('stTwo').textContent = accepted ? (100 * twos / accepted).toFixed(1) + '%' : '—';
+    drawTrace();
+  }
+  function paintButtons(){
+    $('run1k').disabled = running; $('run10k').disabled = running;
+    $('run1k').textContent = running ? 'Running…' : 'Run 1,000 accepted games';
+  }
+  var cv = $('trace'), ctx = cv.getContext('2d');
+  function drawTrace(){
+    var W = cv.width, H = cv.height, PL = 40, PR = 96, PT = 16, PB = 26;
+    ctx.clearRect(0, 0, W, H);
+    var ymax = 6.6;
+    function X(i, n){ return PL + (n <= 1 ? 0 : i / (n - 1)) * (W - PL - PR); }
+    function Y(v){ return PT + (ymax - v) / ymax * (H - PT - PB); }
+    function hline(v, color, label, dash){
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1;
+      ctx.setLineDash(dash || []);
+      ctx.beginPath(); ctx.moveTo(PL, Y(v)); ctx.lineTo(W - PR, Y(v)); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = '12px ui-monospace,Menlo,Consolas,monospace';
+      ctx.fillText(label, W - PR + 8, Y(v) + 4);
+    }
+    hline(6, '#8d99b0', '6 · no condition');
+    hline(3, '#fbbf24', '3 · the tempting answer');
+    hline(1.5, '#34d399', '1.5 · the truth');
+    if (guess !== null && guess > 0 && guess < ymax)
+      hline(guess, '#a78bfa', 'your ' + guess, [5, 4]);
+    ctx.strokeStyle = '#223047';
+    ctx.beginPath(); ctx.moveTo(PL, PT); ctx.lineTo(PL, H - PB); ctx.lineTo(W - PR, H - PB); ctx.stroke();
+    ctx.fillStyle = '#8d99b0'; ctx.font = '12px ui-monospace,Menlo,Consolas,monospace';
+    ctx.fillText('running mean of accepted runs', PL, H - 8);
+    if (trace.length > 1){
+      ctx.strokeStyle = '#5eead4'; ctx.lineWidth = 2; ctx.beginPath();
+      for (var i = 0; i < trace.length; i++){
+        var x = X(i, trace.length), y = Y(Math.min(trace[i], ymax));
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke(); ctx.lineWidth = 1;
+    } else {
+      ctx.fillStyle = '#8d99b0';
+      ctx.fillText('press run — the mean starts wild and settles', PL + 10, Y(4.5));
+    }
+  }
+  $('run1k').addEventListener('click', function(){ if (!running){ running = true; paintButtons(); runBatch(1000); } });
+  $('run10k').addEventListener('click', function(){ if (!running){ running = true; paintButtons(); runBatch(10000); } });
+  $('simReset').addEventListener('click', function(){
+    accepted = 0; sumN = 0; ones = 0; twos = 0; trace = []; paint();
+  });
+
+  /* ---------- commit / progress ---------- */
+  function renderVerdict(g){
+    var v = $('verdict'), diff = Math.abs(g - 1.5);
+    var msg;
+    if (diff <= 0.1){ v.className = 'verdict good'; msg = '<b>Essentially exact.</b> You said ' + g + '; the answer is 1.5. Either you have seen this species of trap before, or your conditioning instincts are unusually clean. Run the simulation and watch it land.'; }
+    else if (g === 3){ v.className = 'verdict bad'; msg = '<b>You said 3, the answer almost everyone gives.</b> The answer is 1.5. The 3 comes from quietly replacing the die with a three-sided one (2, 4, 6), but conditioning does not rebuild the die, it reweights the histories and punishes the long ones. Run the simulation and watch the mean refuse to go near 3.'; }
+    else if (g === 6){ v.className = 'verdict bad'; msg = '<b>You said 6, which is the right answer to a different question.</b> Six is the expected wait with no condition attached. The condition does heavy work here: the answer is 1.5. Run the simulation and watch how far the filter drags the mean down.'; }
+    else { v.className = 'verdict bad'; msg = '<b>You said ' + g + '; the answer is 1.5.</b> The gap between the two is the price of the condition: it filters out three quarters of all games and nearly all of the long ones. Run the simulation and watch the running mean settle.'; }
+    v.innerHTML = msg;
+  }
+  function reveal(g){
+    guess = g;
+    $('commitNum').disabled = true;
+    $('commitBtn').disabled = true;
+    $('lockmsg').style.display = 'none';
+    $('rest').style.display = 'block';
+    renderVerdict(g); paint();
+  }
+  $('commitBtn').addEventListener('click', function(){
+    var raw = $('commitNum').value.trim();
+    var g = parseFloat(raw);
+    if (raw === '' || isNaN(g) || g <= 0){ $('commitErr').style.display = 'block'; return; }
+    $('commitErr').style.display = 'none';
+    var p = loadP(); p[PID] = p[PID] || {}; p[PID].committed = true; p[PID].answers = { value: g }; saveP(p);
+    reveal(g);
+  });
+
+  var prog = loadP(), entry = prog[PID] || {};
+  if (entry.committed && entry.answers && typeof entry.answers.value === 'number'){
+    $('commitNum').value = entry.answers.value;
+    reveal(entry.answers.value);
+  }
+  function paintDone(){
+    var p = loadP(), e = p[PID] || {};
+    if (e.done){
+      $('markDone').textContent = '✓ Completed';
+      $('markDone').disabled = true;
+      $('doneNote').textContent = 'Saved on this device. Your home page shows this problem as done.';
+    }
+  }
+  $('markDone').addEventListener('click', function(){
+    var p = loadP(); p[PID] = p[PID] || {}; p[PID].done = true; saveP(p); paintDone();
+  });
+  $('resetProblem').addEventListener('click', function(){
+    var p = loadP(); delete p[PID]; saveP(p); location.reload();
+  });
+  paintDone(); paint();
+})();
+</script>
+</body>
+</html>
