@@ -23,6 +23,10 @@ Progress (committed answers, completed problems) is stored in `localStorage` und
 | 6 | The Correlation That Cannot Exist | `problems/impossible.html` | Corr(X₁,X₂) = Corr(X₂,X₃) = 0.8 traps Corr(X₁,X₃) in [0.28, 1]; the colleague's 0.1 gives det R = −0.162. Pairwise correlations are angles of one rigid figure, not independent dials — hand-assembled matrices are routinely impossible. |
 | 7 | The Event You Never See | `problems/rareevent.html` | Estimating P(X > 4) ≈ 3.17×10⁻⁵ with 10,000 plain Monte Carlo draws: expected hits 0.32, so most runs report exactly 0. Importance sampling from N(4, 1) with weights e^(8−4x) nails it on the same budget. Rare-event simulation fails silently, with a zero. |
 
+## 🗣️ The Interview Room
+
+`interview.html` is the gym's opposite: no simulations, no commits, just seven open interview questions in the manner of Ilya Sutskever's documented interview method — one simple question, then a ladder of whys — rebuilt for working data scientists. Each card hides its ladder until you have answered. The page states its framing plainly at the top: these are **reconstructions in his style, not quotations** of real questions he has asked.
+
 ## 🎮 Calibration Duel (the original game)
 
 The game that used to be the home page now lives at **`duel.html`**, unchanged apart from a link back home. Ten statements, true or false. Each round:
