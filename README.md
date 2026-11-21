@@ -19,6 +19,9 @@ Progress (committed answers, completed problems) is stored in `localStorage` und
 | 2 | The Even Dice Trap | `problems/dice.html` | Roll until the first 6, given every roll was even: the expected number of rolls is 3/2, not the tempting 3. Conditioning reweights histories; it does not rebuild the die. |
 | 3 | The Noise Harvest | `problems/noise.html` | n = 10,000, p = 200, true R² ≈ 0.01: the loudest noise feature (correlation ≈ 0.03) dwarfs a typical true effect (≈ 0.007), so a default GBDT's split search harvests noise while ridge degrades gracefully. |
 | 4 | Ridge, Seen Sideways | `problems/ridge.html` | Through the SVD, ridge is a smooth spectral filter, d²/(d²+λ) per principal direction; PCR is the same filter with a step instead of a ramp. Both rank directions by variance in X, never by relevance to y. |
+| 5 | Build a Correlation | `problems/correlation.html` | From two independent shocks, Y = ρZ₁ + √(1−ρ²)Z₂: the variance budget is spent in squares, so the private weight is the square root of the leftover, 0.6 at ρ = 0.8, not 0.36. This is the Cholesky recipe behind every correlated simulation. |
+| 6 | The Correlation That Cannot Exist | `problems/impossible.html` | Corr(X₁,X₂) = Corr(X₂,X₃) = 0.8 traps Corr(X₁,X₃) in [0.28, 1]; the colleague's 0.1 gives det R = −0.162. Pairwise correlations are angles of one rigid figure, not independent dials — hand-assembled matrices are routinely impossible. |
+| 7 | The Event You Never See | `problems/rareevent.html` | Estimating P(X > 4) ≈ 3.17×10⁻⁵ with 10,000 plain Monte Carlo draws: expected hits 0.32, so most runs report exactly 0. Importance sampling from N(4, 1) with weights e^(8−4x) nails it on the same budget. Rare-event simulation fails silently, with a zero. |
 
 ## 🎮 Calibration Duel (the original game)
 
