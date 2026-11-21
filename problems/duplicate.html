@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Duplicate the Data — Coacerva</title>
+<style>
+  :root{
+    --bg:#0a0d13; --panel:#111724; --panel2:#0d121d; --line:#223047;
+    --text:#e9edf5; --muted:#8d99b0; --accent:#5eead4;
+    --amber:#fbbf24; --green:#34d399; --violet:#a78bfa; --red:#f87171;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);
+    background:radial-gradient(1200px 600px at 80% -10%,#12233a 0%,var(--bg) 55%) fixed,var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 18px 80px}
+  a{color:var(--accent)}
+  .topnav{font-family:var(--mono);font-size:12.5px;margin:0 0 14px}
+  .topnav a{color:var(--muted);text-decoration:none}
+  .topnav a:hover{color:var(--accent)}
+  .logo{font-family:var(--mono);font-weight:700;letter-spacing:.14em;font-size:13px;color:var(--accent);
+    border:1px solid var(--line);padding:8px 12px;border-radius:10px;background:rgba(94,234,212,.06);display:inline-block}
+  h1{font-size:29px;margin:14px 0 4px;letter-spacing:-.01em}
+  .pnum{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted)}
+  .stmt{font-size:16.5px;color:var(--text);max-width:700px}
+  .stmt b{color:var(--accent)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:12.5px;font-family:var(--mono);letter-spacing:.12em;color:var(--muted);margin:0 0 10px;text-transform:uppercase}
+  .card h2 .beatno{color:var(--accent)}
+  .qgroup{margin-bottom:14px}
+  .qgroup .qtext{font-weight:600;margin-bottom:6px}
+  .opt{display:block;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:9px 12px;margin-bottom:6px;cursor:pointer;font-size:15px}
+  .opt:hover{border-color:var(--accent)}
+  .opt input{accent-color:var(--accent);margin-right:9px}
+  .opt.sel{border-color:var(--accent);background:rgba(94,234,212,.06)}
+  fieldset{border:none;margin:0;padding:0}
+  fieldset:disabled .opt{opacity:.65;cursor:default}
+  fieldset:disabled .opt:hover{border-color:var(--line)}
+  input[type=number],input[type=text]{background:var(--panel2);border:1px solid var(--line);
+    color:var(--text);border-radius:10px;padding:10px 12px;font-size:16px;font-family:var(--mono);width:180px}
+  input:focus{outline:none;border-color:var(--accent)}
+  .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;border:1px solid var(--line);background:var(--panel);
+    color:var(--text);border-radius:10px;padding:9px 14px;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#06251f;font-weight:700;font-size:15px;
+    padding:12px 20px;border-radius:12px;letter-spacing:.05em}
+  .btn.primary:not(:disabled):hover{filter:brightness(1.08);color:#06251f}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+  .err{color:var(--red);font-size:13.5px;margin-top:8px;display:none}
+  #lockmsg{border:1px dashed var(--line);border-radius:14px;padding:22px 16px;text-align:center;
+    color:var(--muted);font-family:var(--mono);font-size:13.5px;margin-bottom:14px}
+  .verdict{border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14.5px;border:1px solid var(--line);background:var(--panel2)}
+  .verdict.good{border-color:rgba(52,211,153,.5)}
+  .verdict.bad{border-color:rgba(251,191,36,.5)}
+  .verdict ul{margin:6px 0 0;padding-left:18px}
+  .verdict .ok{color:var(--green)} .verdict .no{color:var(--amber)}
+  table.stats{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13.5px;margin-top:10px}
+  table.stats th,table.stats td{border-top:1px solid var(--line);padding:7px 8px;text-align:right}
+  table.stats th:first-child,table.stats td:first-child{text-align:left;color:var(--muted)}
+  table.stats thead th{border-top:none;color:var(--muted);font-size:11px;letter-spacing:.08em}
+  .bignum{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--accent);line-height:1.15}
+  .chartbox{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
+  .chartbox svg{width:100%;height:auto;display:block}
+  .mech p,.atwork p{margin:0 0 10px;font-size:15px}
+  .mech p:last-child,.atwork p:last-child{margin-bottom:0}
+  code,.mono{font-family:var(--mono);color:var(--accent);font-size:.92em}
+  .formula{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;margin:0 0 10px;font-size:14px;color:var(--text);overflow-x:auto;white-space:nowrap}
+  .completebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .resetlink{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:12px;cursor:pointer;text-decoration:underline;padding:0}
+  .resetlink:hover{color:var(--red)}
+  footer{margin-top:26px;color:var(--muted);font-size:12px;font-family:var(--mono);text-align:center}
+  footer a{color:var(--muted)} footer a:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="topnav"><a href="../index.html">&larr; Coacerva home</a></p>
+  <span class="logo">COACERVA</span>
+  <p class="pnum" style="margin:12px 0 0">PROBLEM 1 · INFERENCE</p>
+  <h1>Duplicate the Data</h1>
+  <p class="stmt">You fit a simple regression, <b>y = &beta;x + noise</b>, with centered data and no intercept. Then someone duplicates every row in the dataset, so n becomes 2n, and refits the identical model on the doubled data. What happens to the estimate, its standard error, the t statistic, and R&sup2;?</p>
+
+  <div class="card">
+    <h2><span class="beatno">Beat 1</span> · Commit</h2>
+    <p class="hint" style="margin:0 0 12px">Four quick calls. Nothing below unlocks until you make all four.</p>
+    <fieldset id="commitForm">
+      <div class="qgroup">
+        <div class="qtext">The estimate &beta;&#770; will…</div>
+        <label class="opt"><input type="radio" name="q_beta" value="unchanged">Stay the same</label>
+        <label class="opt"><input type="radio" name="q_beta" value="grows">Grow</label>
+        <label class="opt"><input type="radio" name="q_beta" value="shrinks">Shrink</label>
+      </div>
+      <div class="qgroup">
+        <div class="qtext">Its standard error will…</div>
+        <label class="opt"><input type="radio" name="q_se" value="unchanged">Stay the same</label>
+        <label class="opt"><input type="radio" name="q_se" value="sqrt2">Get about &radic;2 times smaller</label>
+        <label class="opt"><input type="radio" name="q_se" value="half">Get about half as big</label>
+      </div>
+      <div class="qgroup">
+        <div class="qtext">The t statistic will…</div>
+        <label class="opt"><input type="radio" name="q_t" value="unchanged">Stay the same</label>
+        <label class="opt"><input type="radio" name="q_t" value="sqrt2">Get about &radic;2 times larger</label>
+        <label class="opt"><input type="radio" name="q_t" value="doubles">Double</label>
+      </div>
+      <div class="qgroup">
+        <div class="qtext">R&sup2; will…</div>
+        <label class="opt"><input type="radio" name="q_r2" value="unchanged">Stay the same</label>
+        <label class="opt"><input type="radio" name="q_r2" value="doubles">Double</label>
+      </div>
+      <button class="btn primary" id="commitBtn" type="button">Lock in my answers &rarr;</button>
+      <p class="err" id="commitErr">Pick an answer for all four questions first.</p>
+    </fieldset>
+  </div>
+
+  <div id="lockmsg">&#128274; Commit answers above to unlock the simulation.</div>
+
+  <div id="rest" style="display:none">
+    <div class="card">
+      <h2><span class="beatno">Beat 2</span> · See it</h2>
+      <div class="verdict" id="verdict"></div>
+      <p style="margin:0">A real dataset: n = 250 points drawn from a population with a weak true slope of 0.12, plus noise. The fit below is computed live, in your browser, from the actual points. Press the button and watch which numbers refuse to move, and which ones quietly inflate.</p>
+      <div class="chartbox"><svg id="scatter" viewBox="0 0 800 430" role="img" aria-label="Scatter plot with fitted line"></svg></div>
+      <p class="hint" id="copyNote">Each dot is one row. The fitted line is drawn from the current data.</p>
+      <div class="btnrow">
+        <button class="btn primary" id="dupBtn" type="button">Duplicate every row</button>
+        <button class="btn" id="resetDataBtn" type="button">Reset data</button>
+      </div>
+      <p class="hint" id="dupCount"></p>
+      <table class="stats">
+        <thead><tr><th>Statistic</th><th>Original</th><th>Now</th><th>Change</th></tr></thead>
+        <tbody id="statsBody"></tbody>
+      </table>
+      <p class="hint">The p-value uses a normal approximation, fine at these sample sizes. Notice when it crosses 0.05, and ask yourself what new evidence arrived at that moment. None did. The dataset just got photocopied.</p>
+    </div>
+
+    <div class="card mech">
+      <h2><span class="beatno">Beat 3</span> · The mechanism</h2>
+      <p>With no intercept, the OLS estimate is a ratio of two sums:</p>
+      <p class="formula">&beta;&#770; = &Sigma;xy / &Sigma;x&sup2;</p>
+      <p>Duplicate every row and both sums exactly double. The ratio does not move, so <b>&beta;&#770; is unchanged</b>. The residuals are the same residuals, twice, so SSE doubles; SST doubles too; and since R&sup2; = 1 &minus; SSE/SST, <b>R&sup2; is unchanged</b>. The fit statistics only see proportions, and duplication preserves every proportion.</p>
+      <p>The standard error is where the lie enters:</p>
+      <p class="formula">SE(&beta;&#770;)&sup2; = &sigma;&#770;&sup2; / &Sigma;x&sup2;</p>
+      <p>&sigma;&#770;&sup2; barely changes (SSE doubles, but the degrees of freedom nearly double too: the exact factor for &sigma;&#770;&sup2; is 2(n&minus;1)/(2n&minus;1), a hair under 1). But &Sigma;x&sup2; fully doubles, so SE&sup2; halves and <b>SE shrinks by about &radic;2</b>, exactly &radic;((n&minus;1)/(2n&minus;1)) for one duplication. Same &beta;&#770;, smaller SE, so <b>t grows by about &radic;2</b> with every photocopy.</p>
+      <p>Why is that wrong? The formula for &sigma;&#770;&sup2; and SE assumes the errors are independent. A duplicated row's error is not independent of the original; it is the same error, correlated with itself at exactly 1. You have n pieces of information wearing a 2n costume, and the formula counts costumes.</p>
+    </div>
+
+    <div class="card atwork">
+      <h2><span class="beatno">Beat 4</span> · At work</h2>
+      <p>Nobody duplicates a dataset on purpose. It happens anyway. The classic is a many-to-many join that silently doubles rows, and suddenly every effect in the model is "significant." Repeated measures get the same treatment when the same person, store, or member contributes many rows that get analyzed as if independent. Member-day tables are the industrial version: one member with 200 event rows is one member, not 200 observations, and standard errors computed at the row level flatter every model built on them.</p>
+      <p>The fixes match the cause. Deduplicate when the copies are an accident. When the repetition is real, keep the rows but cluster the standard errors on the unit that repeats, the member, the patient, the store. Clustering makes the math count units instead of rows, and the &radic;2 mirage disappears.</p>
+    </div>
+
+    <div class="card">
+      <div class="completebar">
+        <button class="btn primary" id="markDone" type="button">Mark this problem complete</button>
+        <button class="resetlink" id="resetProblem" type="button">start this problem over</button>
+      </div>
+      <p class="hint" id="doneNote"></p>
+    </div>
+  </div>
+
+  <footer><a href="../index.html">Coacerva home</a> · <a href="dice.html">next problem: The Even Dice Trap →</a></footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var PID = 'duplicate', KEY = 'coacerva_progress';
+  function loadP(){ try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function saveP(p){ try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) {} }
+  function $(id){ return document.getElementById(id); }
+
+  /* ---------- data: seeded so the demo is the same for every visitor ---------- */
+  function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function randn(rng){ var u = 0, v = 0; while (u === 0) u = rng(); while (v === 0) v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+  var N0 = 250, TRUE_SLOPE = 0.12;
+  var rng = mulberry32(3);
+  var xs = [], ys = [], sxy = 0, sxx = 0, sy = 0;
+  for (var i = 0; i < N0; i++){
+    var x = randn(rng), y = TRUE_SLOPE * x + randn(rng);
+    xs.push(x); ys.push(y); sxy += x * y; sxx += x * x; sy += y;
+  }
+  var beta0 = sxy / sxx, sse0 = 0, sst0 = 0, ybar = sy / N0;
+  for (i = 0; i < N0; i++){ var e = ys[i] - beta0 * xs[i]; sse0 += e * e; var d = ys[i] - ybar; sst0 += d * d; }
+
+  function phi(z){ /* standard normal CDF via erf approximation */
+    var s = z < 0 ? -1 : 1, az = Math.abs(z) / Math.SQRT2;
+    var t = 1 / (1 + 0.3275911 * az);
+    var erf = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-az * az);
+    return 0.5 * (1 + s * erf);
+  }
+
+  function statsFor(k){ /* k = number of duplications applied */
+    var f = Math.pow(2, k), n = N0 * f;
+    var beta = sxy / sxx;                       /* ratio: f cancels */
+    var s2 = (sse0 * f) / (n - 1);
+    var se = Math.sqrt(s2 / (sxx * f));
+    var t = beta / se;
+    var r2 = 1 - sse0 / sst0;                   /* f cancels */
+    var p = 2 * (1 - phi(Math.abs(t)));
+    return { n: n, beta: beta, se: se, t: t, r2: r2, p: p, f: f };
+  }
+  var base = statsFor(0), dupK = 0;
+
+  /* ---------- scatter ---------- */
+  var svg = $('scatter'), NS = 'http://www.w3.org/2000/svg';
+  var W = 800, H = 430, PL = 46, PR = 14, PT = 14, PB = 34;
+  var XMIN = -3.4, XMAX = 3.4, YMIN = -3.8, YMAX = 3.8;
+  function px(x){ return PL + (x - XMIN) / (XMAX - XMIN) * (W - PL - PR); }
+  function py(y){ return PT + (YMAX - y) / (YMAX - YMIN) * (H - PT - PB); }
+  function line(x1, y1, x2, y2, stroke, wdt, dash){
+    var l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+    l.setAttribute('stroke', stroke); l.setAttribute('stroke-width', wdt);
+    if (dash) l.setAttribute('stroke-dasharray', dash);
+    svg.appendChild(l); return l;
+  }
+  line(px(XMIN), py(0), px(XMAX), py(0), '#223047', 1);
+  line(px(0), py(YMIN), px(0), py(YMAX), '#223047', 1);
+  var fitLine = line(px(XMIN), py(beta0 * XMIN), px(XMAX), py(beta0 * XMAX), '#5eead4', 2.5);
+  var circles = [];
+  for (i = 0; i < N0; i++){
+    var c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', px(xs[i])); c.setAttribute('cy', py(ys[i])); c.setAttribute('r', 2.4);
+    c.setAttribute('fill', '#5eead4'); c.setAttribute('fill-opacity', 0.5);
+    svg.appendChild(c); circles.push(c);
+  }
+  function txt(x, y, s, fill, anchor){
+    var t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', x); t.setAttribute('y', y); t.setAttribute('fill', fill || '#8d99b0');
+    t.setAttribute('font-size', '12'); t.setAttribute('font-family', 'ui-monospace,Menlo,Consolas,monospace');
+    if (anchor) t.setAttribute('text-anchor', anchor);
+    t.textContent = s; svg.appendChild(t); return t;
+  }
+  txt(px(XMAX) - 4, py(0) - 8, 'x', '#8d99b0', 'end');
+  txt(px(0) + 8, py(YMAX) + 12, 'y', '#8d99b0');
+
+  function fmt(v, d){ return v.toFixed(d); }
+  function renderStats(){
+    var s = statsFor(dupK);
+    function row(name, b, now, change){
+      return '<tr><td>' + name + '</td><td>' + b + '</td><td>' + now + '</td><td>' + change + '</td></tr>';
+    }
+    $('statsBody').innerHTML =
+      row('n', base.n, s.n, s.f > 1 ? '× ' + s.f : '—') +
+      row('&beta;&#770;', fmt(base.beta, 4), fmt(s.beta, 4), 'identical') +
+      row('SE(&beta;&#770;)', fmt(base.se, 4), fmt(s.se, 4), s.f > 1 ? '× ' + (s.se / base.se).toFixed(3) : '—') +
+      row('t', fmt(base.t, 2), fmt(s.t, 2), s.f > 1 ? '× ' + (s.t / base.t).toFixed(2) : '—') +
+      row('p (approx)', fmt(base.p, 3), s.p < 0.001 ? '&lt; 0.001' : fmt(s.p, 3), s.f > 1 ? (s.p < 0.05 && base.p >= 0.05 ? 'now &ldquo;significant&rdquo;' : '') : '—') +
+      row('R&sup2;', fmt(base.r2, 4), fmt(s.r2, 4), 'identical');
+    $('dupCount').textContent = s.f === 1
+      ? 'Dataset stacked 1 time. n = ' + s.n + '.'
+      : 'Dataset stacked ' + s.f + ' times (' + dupK + ' duplications). n = ' + s.n + ', but the number of distinct observations is still ' + N0 + '.';
+    $('copyNote').textContent = s.f === 1
+      ? 'Each dot is one row. The fitted line is drawn from the current data.'
+      : 'The picture does not move: every copy lands exactly on top of an original dot. Each dot now hides ' + s.f + ' identical rows, and the fitted line is pixel for pixel the same.';
+    circles.forEach(function(c){ c.setAttribute('fill-opacity', Math.min(0.5 + 0.09 * dupK, 0.95)); c.setAttribute('r', 2.4 + 0.25 * dupK); });
+    $('dupBtn').disabled = dupK >= 5;
+    $('dupBtn').textContent = dupK >= 5 ? 'Duplicated 5 times (×32 rows)' : 'Duplicate every row';
+  }
+  $('dupBtn').addEventListener('click', function(){ if (dupK < 5){ dupK++; renderStats(); } });
+  $('resetDataBtn').addEventListener('click', function(){ dupK = 0; renderStats(); });
+
+  /* ---------- commit / progress ---------- */
+  var CORRECT = { q_beta: 'unchanged', q_se: 'sqrt2', q_t: 'sqrt2', q_r2: 'unchanged' };
+  var LABELS = {
+    q_beta: { name: '&beta;&#770;', unchanged: 'stays the same', grows: 'grows', shrinks: 'shrinks' },
+    q_se:   { name: 'SE', unchanged: 'stays the same', sqrt2: 'about &radic;2 smaller', half: 'about half' },
+    q_t:    { name: 't', unchanged: 'stays the same', sqrt2: 'about &radic;2 larger', doubles: 'doubles' },
+    q_r2:   { name: 'R&sup2;', unchanged: 'stays the same', doubles: 'doubles' }
+  };
+  function gather(){
+    var a = {}, ok = true;
+    Object.keys(CORRECT).forEach(function(q){
+      var sel = document.querySelector('input[name="' + q + '"]:checked');
+      if (!sel) ok = false; else a[q] = sel.value;
+    });
+    return ok ? a : null;
+  }
+  function renderVerdict(a){
+    var nRight = 0, items = '';
+    Object.keys(CORRECT).forEach(function(q){
+      var right = a[q] === CORRECT[q]; if (right) nRight++;
+      items += '<li>' + LABELS[q].name + ': you said <b>' + LABELS[q][a[q]] + '</b> ' +
+        (right ? '<span class="ok">✓</span>' : '<span class="no">✗ — it actually ' + LABELS[q][CORRECT[q]].replace(/^about /, 'gets about ').replace(/^stays/, 'stays') + '</span>') + '</li>';
+    });
+    var v = $('verdict');
+    v.className = 'verdict ' + (nRight === 4 ? 'good' : 'bad');
+    v.innerHTML = (nRight === 4
+      ? '<b>4 of 4.</b> You already knew the photocopier cannot create evidence. Watch it happen anyway:'
+      : '<b>' + nRight + ' of 4.</b> The pattern to burn in: the fit is made of ratios, so it cannot see duplication. The inference can, and it gets fooled.') +
+      '<ul>' + items + '</ul>';
+  }
+  function reveal(a){
+    $('commitForm').disabled = true;
+    $('commitErr').style.display = 'none';
+    $('lockmsg').style.display = 'none';
+    $('rest').style.display = 'block';
+    renderVerdict(a); renderStats();
+  }
+  $('commitBtn').addEventListener('click', function(){
+    var a = gather();
+    if (!a){ $('commitErr').style.display = 'block'; return; }
+    var p = loadP(); p[PID] = p[PID] || {}; p[PID].committed = true; p[PID].answers = a; saveP(p);
+    reveal(a);
+  });
+  document.querySelectorAll('.opt input').forEach(function(inp){
+    inp.addEventListener('change', function(){
+      document.querySelectorAll('input[name="' + inp.name + '"]').forEach(function(o){ o.closest('.opt').classList.remove('sel'); });
+      inp.closest('.opt').classList.add('sel');
+    });
+  });
+
+  var prog = loadP(), entry = prog[PID] || {};
+  if (entry.committed && entry.answers){
+    Object.keys(entry.answers).forEach(function(q){
+      var inp = document.querySelector('input[name="' + q + '"][value="' + entry.answers[q] + '"]');
+      if (inp){ inp.checked = true; inp.closest('.opt').classList.add('sel'); }
+    });
+    reveal(entry.answers);
+  }
+  function paintDone(){
+    var p = loadP(), e = p[PID] || {};
+    if (e.done){
+      $('markDone').textContent = '✓ Completed';
+      $('markDone').disabled = true;
+      $('doneNote').textContent = 'Saved on this device. Your home page shows this problem as done.';
+    }
+  }
+  $('markDone').addEventListener('click', function(){
+    var p = loadP(); p[PID] = p[PID] || {}; p[PID].done = true; saveP(p); paintDone();
+  });
+  $('resetProblem').addEventListener('click', function(){
+    var p = loadP(); delete p[PID]; saveP(p); location.reload();
+  });
+  paintDone();
+})();
+</script>
+</body>
+</html>
