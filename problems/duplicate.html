@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Duplicate the Data — Coacerva</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <style>
   :root{
     --bg:#0a0d13; --panel:#111724; --panel2:#0d121d; --line:#223047;
@@ -69,8 +70,10 @@
   .mech p,.atwork p{margin:0 0 10px;font-size:15px}
   .mech p:last-child,.atwork p:last-child{margin-bottom:0}
   code,.mono{font-family:var(--mono);color:var(--accent);font-size:.92em}
-  .formula{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:10px;
-    padding:10px 14px;margin:0 0 10px;font-size:14px;color:var(--text);overflow-x:auto;white-space:nowrap}
+  .formula{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;margin:0 0 10px;font-size:15px;color:var(--text);overflow-x:auto}
+  .katex-display{margin:8px 0;overflow-x:auto;overflow-y:hidden;padding:3px 0}
+  .formula .katex-display{margin:0;padding:0}
   .completebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .resetlink{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:12px;cursor:pointer;text-decoration:underline;padding:0}
   .resetlink:hover{color:var(--red)}
@@ -84,14 +87,14 @@
   <span class="logo">COACERVA</span>
   <p class="pnum" style="margin:12px 0 0">PROBLEM 1 · INFERENCE</p>
   <h1>Duplicate the Data</h1>
-  <p class="stmt">You fit a simple regression, <b>y = &beta;x + noise</b>, with centered data and no intercept. Then someone duplicates every row in the dataset, so n becomes 2n, and refits the identical model on the doubled data. What happens to the estimate, its standard error, the t statistic, and R&sup2;?</p>
+  <p class="stmt">You fit a simple regression, <b>\(y = \beta x + \text{noise}\)</b>, with centered data and no intercept. Then someone duplicates every row in the dataset, so \(n\) becomes \(2n\), and refits the identical model on the doubled data. What happens to the estimate, its standard error, the \(t\) statistic, and \(R^2\)?</p>
 
   <div class="card">
     <h2><span class="beatno">Beat 1</span> · Commit</h2>
     <p class="hint" style="margin:0 0 12px">Four quick calls. Nothing below unlocks until you make all four.</p>
     <fieldset id="commitForm">
       <div class="qgroup">
-        <div class="qtext">The estimate &beta;&#770; will…</div>
+        <div class="qtext">The estimate \(\hat{\beta}\) will…</div>
         <label class="opt"><input type="radio" name="q_beta" value="unchanged">Stay the same</label>
         <label class="opt"><input type="radio" name="q_beta" value="grows">Grow</label>
         <label class="opt"><input type="radio" name="q_beta" value="shrinks">Shrink</label>
@@ -99,17 +102,17 @@
       <div class="qgroup">
         <div class="qtext">Its standard error will…</div>
         <label class="opt"><input type="radio" name="q_se" value="unchanged">Stay the same</label>
-        <label class="opt"><input type="radio" name="q_se" value="sqrt2">Get about &radic;2 times smaller</label>
+        <label class="opt"><input type="radio" name="q_se" value="sqrt2">Get about \(\sqrt{2}\) times smaller</label>
         <label class="opt"><input type="radio" name="q_se" value="half">Get about half as big</label>
       </div>
       <div class="qgroup">
         <div class="qtext">The t statistic will…</div>
         <label class="opt"><input type="radio" name="q_t" value="unchanged">Stay the same</label>
-        <label class="opt"><input type="radio" name="q_t" value="sqrt2">Get about &radic;2 times larger</label>
+        <label class="opt"><input type="radio" name="q_t" value="sqrt2">Get about \(\sqrt{2}\) times larger</label>
         <label class="opt"><input type="radio" name="q_t" value="doubles">Double</label>
       </div>
       <div class="qgroup">
-        <div class="qtext">R&sup2; will…</div>
+        <div class="qtext">\(R^2\) will…</div>
         <label class="opt"><input type="radio" name="q_r2" value="unchanged">Stay the same</label>
         <label class="opt"><input type="radio" name="q_r2" value="doubles">Double</label>
       </div>
@@ -124,7 +127,7 @@
     <div class="card">
       <h2><span class="beatno">Beat 2</span> · See it</h2>
       <div class="verdict" id="verdict"></div>
-      <p style="margin:0">A real dataset: n = 250 points drawn from a population with a weak true slope of 0.12, plus noise. The fit below is computed live, in your browser, from the actual points. Press the button and watch which numbers refuse to move, and which ones quietly inflate.</p>
+      <p style="margin:0">A real dataset: \(n = 250\) points drawn from a population with a weak true slope of \(0.12\), plus noise. The fit below is computed live, in your browser, from the actual points. Press the button and watch which numbers refuse to move, and which ones quietly inflate.</p>
       <div class="chartbox"><svg id="scatter" viewBox="0 0 800 430" role="img" aria-label="Scatter plot with fitted line"></svg></div>
       <p class="hint" id="copyNote">Each dot is one row. The fitted line is drawn from the current data.</p>
       <div class="btnrow">
@@ -142,18 +145,18 @@
     <div class="card mech">
       <h2><span class="beatno">Beat 3</span> · The mechanism</h2>
       <p>With no intercept, the OLS estimate is a ratio of two sums:</p>
-      <p class="formula">&beta;&#770; = &Sigma;xy / &Sigma;x&sup2;</p>
-      <p>Duplicate every row and both sums exactly double. The ratio does not move, so <b>&beta;&#770; is unchanged</b>. The residuals are the same residuals, twice, so SSE doubles; SST doubles too; and since R&sup2; = 1 &minus; SSE/SST, <b>R&sup2; is unchanged</b>. The fit statistics only see proportions, and duplication preserves every proportion.</p>
+      <p class="formula">\[\hat{\beta} = \frac{\sum xy}{\sum x^2}\]</p>
+      <p>Duplicate every row and both sums exactly double. The ratio does not move, so <b>\(\hat{\beta}\) is unchanged</b>. The residuals are the same residuals, twice, so SSE doubles; SST doubles too; and since \(R^2 = 1 - \mathrm{SSE}/\mathrm{SST}\), <b>\(R^2\) is unchanged</b>. The fit statistics only see proportions, and duplication preserves every proportion.</p>
       <p>The standard error is where the lie enters:</p>
-      <p class="formula">SE(&beta;&#770;)&sup2; = &sigma;&#770;&sup2; / &Sigma;x&sup2;</p>
-      <p>&sigma;&#770;&sup2; barely changes (SSE doubles, but the degrees of freedom nearly double too: the exact factor for &sigma;&#770;&sup2; is 2(n&minus;1)/(2n&minus;1), a hair under 1). But &Sigma;x&sup2; fully doubles, so SE&sup2; halves and <b>SE shrinks by about &radic;2</b>, exactly &radic;((n&minus;1)/(2n&minus;1)) for one duplication. Same &beta;&#770;, smaller SE, so <b>t grows by about &radic;2</b> with every photocopy.</p>
-      <p>Why is that wrong? The formula for &sigma;&#770;&sup2; and SE assumes the errors are independent. A duplicated row's error is not independent of the original; it is the same error, correlated with itself at exactly 1. You have n pieces of information wearing a 2n costume, and the formula counts costumes.</p>
+      <p class="formula">\[\operatorname{SE}(\hat{\beta})^2 = \frac{\hat{\sigma}^2}{\sum x^2}\]</p>
+      <p>\(\hat{\sigma}^2\) barely changes (SSE doubles, but the degrees of freedom nearly double too: the exact factor for \(\hat{\sigma}^2\) is \(\frac{2(n-1)}{2n-1}\), a hair under 1). But \(\sum x^2\) fully doubles, so \(\operatorname{SE}^2\) halves and <b>SE shrinks by about \(\sqrt{2}\)</b>, exactly \(\sqrt{\frac{n-1}{2n-1}}\) for one duplication. Same \(\hat{\beta}\), smaller SE, so <b>\(t\) grows by about \(\sqrt{2}\)</b> with every photocopy.</p>
+      <p>Why is that wrong? The formula for \(\hat{\sigma}^2\) and SE assumes the errors are independent. A duplicated row's error is not independent of the original; it is the same error, correlated with itself at exactly 1. You have \(n\) pieces of information wearing a \(2n\) costume, and the formula counts costumes.</p>
     </div>
 
     <div class="card atwork">
       <h2><span class="beatno">Beat 4</span> · At work</h2>
       <p>Nobody duplicates a dataset on purpose. It happens anyway. The classic is a many-to-many join that silently doubles rows, and suddenly every effect in the model is "significant." Repeated measures get the same treatment when the same person, store, or member contributes many rows that get analyzed as if independent. Member-day tables are the industrial version: one member with 200 event rows is one member, not 200 observations, and standard errors computed at the row level flatter every model built on them.</p>
-      <p>The fixes match the cause. Deduplicate when the copies are an accident. When the repetition is real, keep the rows but cluster the standard errors on the unit that repeats, the member, the patient, the store. Clustering makes the math count units instead of rows, and the &radic;2 mirage disappears.</p>
+      <p>The fixes match the cause. Deduplicate when the copies are an accident. When the repetition is real, keep the rows but cluster the standard errors on the unit that repeats, the member, the patient, the store. Clustering makes the math count units instead of rows, and the \(\sqrt{2}\) mirage disappears.</p>
     </div>
 
     <div class="card">
@@ -342,6 +345,21 @@
   });
   paintDone();
 })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    if (window.renderMathInElement){
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "\\[", right: "\\]", display: true},
+          {left: "\\(", right: "\\)", display: false}
+        ],
+        throwOnError: false
+      });
+    }
+  });
 </script>
 </body>
 </html>
