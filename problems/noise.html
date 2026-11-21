@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Noise Harvest — Coacerva</title>
+<style>
+  :root{
+    --bg:#0a0d13; --panel:#111724; --panel2:#0d121d; --line:#223047;
+    --text:#e9edf5; --muted:#8d99b0; --accent:#5eead4;
+    --amber:#fbbf24; --green:#34d399; --violet:#a78bfa; --red:#f87171;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);
+    background:radial-gradient(1200px 600px at 80% -10%,#12233a 0%,var(--bg) 55%) fixed,var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 18px 80px}
+  a{color:var(--accent)}
+  .topnav{font-family:var(--mono);font-size:12.5px;margin:0 0 14px}
+  .topnav a{color:var(--muted);text-decoration:none}
+  .topnav a:hover{color:var(--accent)}
+  .logo{font-family:var(--mono);font-weight:700;letter-spacing:.14em;font-size:13px;color:var(--accent);
+    border:1px solid var(--line);padding:8px 12px;border-radius:10px;background:rgba(94,234,212,.06);display:inline-block}
+  h1{font-size:29px;margin:14px 0 4px;letter-spacing:-.01em}
+  .pnum{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted)}
+  .stmt{font-size:16.5px;color:var(--text);max-width:700px}
+  .stmt b{color:var(--accent)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:12.5px;font-family:var(--mono);letter-spacing:.12em;color:var(--muted);margin:0 0 10px;text-transform:uppercase}
+  .card h2 .beatno{color:var(--accent)}
+  .card h3{font-size:15px;margin:16px 0 6px}
+  .qgroup{margin-bottom:14px}
+  .qgroup .qtext{font-weight:600;margin-bottom:6px}
+  .opt{display:block;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:9px 12px;margin-bottom:6px;cursor:pointer;font-size:15px}
+  .opt:hover{border-color:var(--accent)}
+  .opt input{accent-color:var(--accent);margin-right:9px}
+  .opt.sel{border-color:var(--accent);background:rgba(94,234,212,.06)}
+  fieldset{border:none;margin:0;padding:0}
+  fieldset:disabled .opt{opacity:.65;cursor:default}
+  fieldset:disabled .opt:hover{border-color:var(--line)}
+  .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;border:1px solid var(--line);background:var(--panel);
+    color:var(--text);border-radius:10px;padding:9px 14px;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#06251f;font-weight:700;font-size:15px;
+    padding:12px 20px;border-radius:12px;letter-spacing:.05em}
+  .btn.primary:not(:disabled):hover{filter:brightness(1.08);color:#06251f}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+  .err{color:var(--red);font-size:13.5px;margin-top:8px;display:none}
+  #lockmsg{border:1px dashed var(--line);border-radius:14px;padding:22px 16px;text-align:center;
+    color:var(--muted);font-family:var(--mono);font-size:13.5px;margin-bottom:14px}
+  .verdict{border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:14.5px;border:1px solid var(--line);background:var(--panel2)}
+  .verdict.good{border-color:rgba(52,211,153,.5)}
+  .verdict.bad{border-color:rgba(251,191,36,.5)}
+  .verdict ul{margin:6px 0 0;padding-left:18px}
+  .verdict .ok{color:var(--green)} .verdict .no{color:var(--amber)}
+  .statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 4px}
+  @media(max-width:640px){.statgrid{grid-template-columns:repeat(2,1fr)}}
+  .gstat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .gk{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted)}
+  .gv{display:block;font-family:var(--mono);font-size:19px;color:var(--accent);margin-top:2px}
+  .chartbox{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
+  .chartbox svg{width:100%;height:auto;display:block}
+  .runlog{font-family:var(--mono);font-size:12.5px;color:var(--muted);line-height:1.9;margin-top:10px;
+    border-top:1px solid var(--line);padding-top:10px}
+  .runlog b{color:var(--text)}
+  .mech p,.atwork p{margin:0 0 10px;font-size:15px}
+  .mech p:last-child,.atwork p:last-child{margin-bottom:0}
+  code,.mono{font-family:var(--mono);color:var(--accent);font-size:.92em}
+  .formula{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;margin:0 0 10px;font-size:14px;color:var(--text);overflow-x:auto;white-space:nowrap}
+  .completebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .resetlink{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:12px;cursor:pointer;text-decoration:underline;padding:0}
+  .resetlink:hover{color:var(--red)}
+  footer{margin-top:26px;color:var(--muted);font-size:12px;font-family:var(--mono);text-align:center}
+  footer a{color:var(--muted)} footer a:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="topnav"><a href="../index.html">&larr; Coacerva home</a></p>
+  <span class="logo">COACERVA</span>
+  <p class="pnum" style="margin:12px 0 0">PROBLEM 3 · MODEL SELECTION</p>
+  <h1>The Noise Harvest</h1>
+  <p class="stmt">A dataset with <b>n = 10,000</b> rows and <b>p = 200</b> somewhat correlated features. The true explainable signal is tiny: true R&sup2; &asymp; <b>0.01</b>. You are choosing between a default gradient boosted decision tree (XGBoost / LightGBM) and ridge regression. Which one is more dangerous out of the box?</p>
+
+  <div class="card">
+    <h2><span class="beatno">Beat 1</span> · Commit</h2>
+    <p class="hint" style="margin:0 0 12px">Two calls. Nothing below unlocks until you make both.</p>
+    <fieldset id="commitForm">
+      <div class="qgroup">
+        <div class="qtext">More dangerous out of the box in this regime:</div>
+        <label class="opt"><input type="radio" name="q_danger" value="gbdt">The default GBDT</label>
+        <label class="opt"><input type="radio" name="q_danger" value="ridge">Ridge regression</label>
+      </div>
+      <div class="qgroup">
+        <div class="qtext">A default GBDT's honest out-of-sample R&sup2; here will most likely be…</div>
+        <label class="opt"><input type="radio" name="q_oos" value="positive">Clearly positive, close to the true 0.01 or better</label>
+        <label class="opt"><input type="radio" name="q_oos" value="nearzero">Near zero, or negative</label>
+        <label class="opt"><input type="radio" name="q_oos" value="training">Near its training R&sup2;</label>
+      </div>
+      <button class="btn primary" id="commitBtn" type="button">Lock in my answers &rarr;</button>
+      <p class="err" id="commitErr">Answer both questions first.</p>
+    </fieldset>
+  </div>
+
+  <div id="lockmsg">&#128274; Commit answers above to unlock the simulation.</div>
+
+  <div id="rest" style="display:none">
+    <div class="card">
+      <h2><span class="beatno">Beat 2</span> · See it</h2>
+      <div class="verdict" id="verdict"></div>
+
+      <h3>Part A — the correlation race, at the stated scale</h3>
+      <p style="margin:0">Below are the sample correlations with y of <b>200 features that are pure noise</b>, drawn at the real n = 10,000. There is no signal in this picture at all. The violet markers show where a typical <i>true</i> feature would sit if the real R&sup2; of 0.01 were spread across the feature set: correlation about 0.007. Look at how far the loudest noise feature sticks out past it.</p>
+      <div class="chartbox"><svg id="race" viewBox="0 0 800 250" role="img" aria-label="Correlations of 200 noise features"></svg></div>
+      <div class="statgrid">
+        <div class="gstat"><span class="gk">LOUDEST NOISE |r|</span><span class="gv" id="stMax">—</span></div>
+        <div class="gstat"><span class="gk">TYPICAL TRUE EFFECT</span><span class="gv">0.007</span></div>
+        <div class="gstat"><span class="gk">NOISE WINS BY</span><span class="gv" id="stRatio">—</span></div>
+        <div class="gstat"><span class="gk">NOISE FEATURES &gt; 0.02</span><span class="gv" id="stCount">—</span></div>
+      </div>
+      <p class="hint" id="raceNote"></p>
+      <div class="btnrow"><button class="btn" id="redrawBtn" type="button">Draw fresh noise</button></div>
+      <p class="hint">Every draw produces a loudest feature around 0.03. It has a feature number, a correlation, and, if you let it, a business story. It is still noise.</p>
+
+      <h3>Part B — selection, then collapse</h3>
+      <p style="margin:0">Now the GBDT's core move in miniature: search everything, keep the winner. This experiment runs at n = 2,000 (split 1,000 train / 1,000 test) so your browser stays fast; the stated n = 10,000 makes the effect stronger, not weaker. The data has 3 weak true features hiding among 197 noise features, total true R&sup2; &asymp; 0.01. Each run picks the single feature with the highest train correlation, the best split candidate, and then asks what that winner is worth on the test half.</p>
+      <div class="statgrid">
+        <div class="gstat"><span class="gk">WINNER ON TRAIN</span><span class="gv" id="stWinner">—</span></div>
+        <div class="gstat"><span class="gk">ITS TRAIN R&sup2;</span><span class="gv" id="stTrainR2">—</span></div>
+        <div class="gstat"><span class="gk">SAME FEATURE, TEST R&sup2;</span><span class="gv" id="stTestR2">—</span></div>
+        <div class="gstat"><span class="gk">WINNER WAS NOISE</span><span class="gv" id="stNoiseWins">—</span></div>
+      </div>
+      <div class="btnrow"><button class="btn primary" id="expBtn" type="button">Run the experiment</button></div>
+      <div class="runlog" id="runLog">No runs yet. The winner's train R&sup2; is the number a split search reports. The test R&sup2; is the number you actually own.</div>
+    </div>
+
+    <div class="card mech">
+      <h2><span class="beatno">Beat 3</span> · The mechanism</h2>
+      <p>Start with the arithmetic of the null. Under no relationship, a sample correlation at n = 10,000 has a standard deviation of about 1/&radic;n = 0.01. Take the maximum over 200 candidates and the loudest spurious feature lands around 0.03, as Part A shows. Spread the true R&sup2; of 0.01 across the real features and a typical genuine effect has a correlation near 0.007. <b>The noise, once you search over it, is several times louder than the signal.</b></p>
+      <p>Every split a GBDT considers is a small version of Part B. At each node it scans all 200 features and their thresholds and keeps the best in-sample gain. The winner won partly on merit, if any, and partly because its noise pointed the right way, and the algorithm cannot separate the two. That is the winner's curse, run thousands of times per forest. Then boosting makes it structural: the first few trees may catch what little signal exists, and every tree after that is fit to residuals that are essentially pure noise. The training score climbs, the importances look precise, and the honest out-of-sample R&sup2; sits near zero or below, exactly as in Part B, where the train winner's R&sup2; routinely collapses to nothing on the test half.</p>
+      <p>Ridge has the opposite geometry. It never searches and never selects. It shrinks every coefficient smoothly toward zero, spreads weight across correlated features instead of crowning one, and as the penalty grows it degrades monotonically toward predicting the mean, which in this regime is nearly the right answer. Its worst case is a shrug. The GBDT's worst case is a confident, elaborate fiction with a feature importance chart attached.</p>
+      <p>The working cure is procedural, not heroic. Make ridge, or even the mean, the champion and put the burden of proof on the flexible model. Run a <b>permutation benchmark</b>: shuffle y, run the entire pipeline end to end, and record the validation score the machinery produces from pure noise; if your real score sits inside that null distribution, you do not have a model. Use repeated cross-validation and report the distribution of scores, not a point estimate, because at R&sup2; &asymp; 0.01 the differences worth chasing are smaller than the noise in a single split's metric.</p>
+    </div>
+
+    <div class="card atwork">
+      <h2><span class="beatno">Beat 4</span> · At work</h2>
+      <p>This is the daily shape of signal screening: hundreds of candidate events, behaviors, and codes, each tested for association with an outcome that is mostly noise. A screening loop that ranks candidates by raw lift is Part B with a bigger budget. It will surface a top ten list every single time, including on data where nothing is there, and the list will look like insight. The discipline that separates a screening loop from a noise harvest is the confirmation machinery: a held-out time window the discovery pass never sees, a permutation run to price what the machinery invents for free, and incremental value measured inside the current model's score bands rather than raw association. If your pipeline, run on shuffled y, produces validation scores that look like your real ones, you have nothing, and it is far better to learn that from the shuffle than from a VP.</p>
+    </div>
+
+    <div class="card">
+      <div class="completebar">
+        <button class="btn primary" id="markDone" type="button">Mark this problem complete</button>
+        <button class="resetlink" id="resetProblem" type="button">start this problem over</button>
+      </div>
+      <p class="hint" id="doneNote"></p>
+    </div>
+  </div>
+
+  <footer><a href="dice.html">← previous: The Even Dice Trap</a> · <a href="../index.html">Coacerva home</a> · <a href="ridge.html">next problem: Ridge, Seen Sideways →</a></footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var PID = 'noise', KEY = 'coacerva_progress';
+  function loadP(){ try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function saveP(p){ try { localStorage.setItem(KEY, JSON.stringify(p)); } catch (e) {} }
+  function $(id){ return document.getElementById(id); }
+  function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function randn(rng){ var u = 0, v = 0; while (u === 0) u = rng(); while (v === 0) v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+
+  /* ---------- Part A: correlation race at n = 10,000 ---------- */
+  var raceSeed = 11;
+  function drawRace(){
+    var rng = mulberry32(raceSeed * 7919 + 13);
+    var n = 10000, p = 200, i, j;
+    var y = new Float64Array(n), sy = 0, syy = 0;
+    for (i = 0; i < n; i++){ y[i] = randn(rng); sy += y[i]; syy += y[i] * y[i]; }
+    var rs = [], maxAbs = 0, maxIdx = -1, over = 0;
+    for (j = 0; j < p; j++){
+      var sx = 0, sxx = 0, sxy = 0;
+      for (i = 0; i < n; i++){ var xv = randn(rng); sx += xv; sxx += xv * xv; sxy += xv * y[i]; }
+      var cov = sxy - sx * sy / n;
+      var r = cov / Math.sqrt((sxx - sx * sx / n) * (syy - sy * sy / n));
+      rs.push(r);
+      if (Math.abs(r) > maxAbs){ maxAbs = Math.abs(r); maxIdx = j; }
+      if (Math.abs(r) > 0.02) over++;
+    }
+    /* draw strip plot */
+    var svg = $('race'), NS = 'http://www.w3.org/2000/svg';
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var W = 800, H = 250, PL = 40, PR = 40, PT = 26, PB = 30, LIM = 0.045;
+    function X(v){ return PL + (v + LIM) / (2 * LIM) * (W - PL - PR); }
+    function el(name, attrs){ var e = document.createElementNS(NS, name); for (var k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; }
+    function txt(x, y, s, fill, anchor){ var t = el('text', { x: x, y: y, fill: fill || '#8d99b0', 'font-size': 12, 'font-family': 'ui-monospace,Menlo,Consolas,monospace' }); if (anchor) t.setAttribute('text-anchor', anchor); t.textContent = s; return t; }
+    [-0.04, -0.02, 0, 0.02, 0.04].forEach(function(v){
+      el('line', { x1: X(v), y1: PT - 6, x2: X(v), y2: H - PB, stroke: '#1b2436', 'stroke-width': 1 });
+      txt(X(v), H - 10, (v > 0 ? '+' : '') + v.toFixed(2), '#8d99b0', 'middle');
+    });
+    el('line', { x1: X(0), y1: PT - 6, x2: X(0), y2: H - PB, stroke: '#223047', 'stroke-width': 1 });
+    [-0.007, 0.007].forEach(function(v){
+      el('line', { x1: X(v), y1: PT - 6, x2: X(v), y2: H - PB, stroke: '#a78bfa', 'stroke-width': 1.4, 'stroke-dasharray': '5 4' });
+    });
+    txt(X(0.007), 14, 'typical true effect ±0.007', '#a78bfa', 'middle');
+    var jrng = mulberry32(99);
+    rs.forEach(function(r, idx){
+      var cy = PT + 14 + jrng() * (H - PT - PB - 28);
+      var isMax = idx === maxIdx;
+      el('circle', { cx: X(r), cy: cy, r: isMax ? 6 : 3, fill: isMax ? '#fbbf24' : '#5eead4', 'fill-opacity': isMax ? 1 : 0.55, stroke: isMax ? '#0a0d13' : 'none', 'stroke-width': 1.5 });
+    });
+    $('stMax').textContent = maxAbs.toFixed(3);
+    $('stRatio').textContent = (maxAbs / 0.007).toFixed(1) + '×';
+    $('stCount').textContent = over + ' of 200';
+    $('raceNote').textContent = 'Loudest noise feature: #' + (maxIdx + 1) + ' at r = ' + rs[maxIdx].toFixed(3) + ' (the amber dot). Pure noise, wearing a name tag.';
+  }
+  $('redrawBtn').addEventListener('click', function(){
+    raceSeed++;
+    $('stMax').textContent = '…';
+    setTimeout(drawRace, 10);
+  });
+
+  /* ---------- Part B: selection then collapse, n = 2,000 ---------- */
+  var expRuns = 0, noiseWins = 0, expSeed = 100;
+  function runExperiment(){
+    expSeed += 17;
+    var rng = mulberry32(expSeed * 31 + 7);
+    var n = 2000, half = 1000, p = 200, TRUE = 3, BETA = 0.06, i, j;
+    var feats = [];
+    for (j = 0; j < p; j++){
+      var col = new Float64Array(n);
+      for (i = 0; i < n; i++) col[i] = randn(rng);
+      feats.push(col);
+    }
+    var y = new Float64Array(n);
+    for (i = 0; i < n; i++){
+      var v = randn(rng);
+      for (j = 0; j < TRUE; j++) v += BETA * feats[j][i];
+      y[i] = v;
+    }
+    function halfStats(col, a, b){
+      var sx = 0, sxx = 0, sxy = 0, sy = 0, syy = 0, m = b - a;
+      for (var i2 = a; i2 < b; i2++){ var xv = col[i2], yv = y[i2]; sx += xv; sxx += xv * xv; sxy += xv * yv; sy += yv; syy += yv * yv; }
+      return { sx: sx, sxx: sxx, sxy: sxy, sy: sy, syy: syy, m: m };
+    }
+    function corr(col, a, b){
+      var s = halfStats(col, a, b);
+      return (s.sxy - s.sx * s.sy / s.m) / Math.sqrt((s.sxx - s.sx * s.sx / s.m) * (s.syy - s.sy * s.sy / s.m));
+    }
+    var bestJ = -1, bestR = 0;
+    for (j = 0; j < p; j++){
+      var rt = corr(feats[j], 0, half);
+      if (Math.abs(rt) > Math.abs(bestR)){ bestR = rt; bestJ = j; }
+    }
+    var rTest = corr(feats[bestJ], half, n);
+    var isNoise = bestJ >= TRUE;
+    expRuns++; if (isNoise) noiseWins++;
+    $('stWinner').textContent = '#' + (bestJ + 1) + (isNoise ? ' (noise)' : ' (true!)');
+    $('stWinner').style.color = isNoise ? '#fbbf24' : '#34d399';
+    $('stTrainR2').textContent = (bestR * bestR).toFixed(4);
+    $('stTestR2').textContent = (rTest * rTest).toFixed(4);
+    $('stNoiseWins').textContent = noiseWins + ' / ' + expRuns + ' runs';
+    var log = $('runLog');
+    var line = 'Run ' + expRuns + ': winner = feature <b>#' + (bestJ + 1) + '</b> (' + (isNoise ? 'noise' : 'one of the 3 true features') + ') · train R&sup2; <b>' + (bestR * bestR).toFixed(4) + '</b> &rarr; test R&sup2; <b>' + (rTest * rTest).toFixed(4) + '</b>';
+    if (expRuns === 1) log.innerHTML = line;
+    else log.innerHTML = line + '<br>' + log.innerHTML;
+  }
+  $('expBtn').addEventListener('click', runExperiment);
+
+  /* ---------- commit / progress ---------- */
+  var CORRECT = { q_danger: 'gbdt', q_oos: 'nearzero' };
+  var LABELS = {
+    q_danger: { name: 'More dangerous', gbdt: 'the default GBDT', ridge: 'ridge' },
+    q_oos: { name: 'GBDT out-of-sample R&sup2;', positive: 'clearly positive', nearzero: 'near zero or negative', training: 'near its training R&sup2;' }
+  };
+  function gather(){
+    var a = {}, ok = true;
+    Object.keys(CORRECT).forEach(function(q){
+      var sel = document.querySelector('input[name="' + q + '"]:checked');
+      if (!sel) ok = false; else a[q] = sel.value;
+    });
+    return ok ? a : null;
+  }
+  function renderVerdict(a){
+    var nRight = 0, items = '';
+    Object.keys(CORRECT).forEach(function(q){
+      var right = a[q] === CORRECT[q]; if (right) nRight++;
+      items += '<li>' + LABELS[q].name + ': you said <b>' + LABELS[q][a[q]] + '</b> ' +
+        (right ? '<span class="ok">✓</span>' : '<span class="no">✗ — the answer is ' + LABELS[q][CORRECT[q]] + '</span>') + '</li>';
+    });
+    var v = $('verdict');
+    v.className = 'verdict ' + (nRight === 2 ? 'good' : 'bad');
+    v.innerHTML = (nRight === 2
+      ? '<b>Both right.</b> You already distrust a search over noise. Now watch the search do its damage:'
+      : '<b>' + nRight + ' of 2.</b> The short version: ridge can only shrink toward the mean, and here the mean is nearly right. The booster can go looking for signal, and what it finds is the noise. Watch:') +
+      '<ul>' + items + '</ul>';
+  }
+  function reveal(a){
+    $('commitForm').disabled = true;
+    $('commitErr').style.display = 'none';
+    $('lockmsg').style.display = 'none';
+    $('rest').style.display = 'block';
+    renderVerdict(a);
+    setTimeout(drawRace, 10);
+  }
+  $('commitBtn').addEventListener('click', function(){
+    var a = gather();
+    if (!a){ $('commitErr').style.display = 'block'; return; }
+    var p = loadP(); p[PID] = p[PID] || {}; p[PID].committed = true; p[PID].answers = a; saveP(p);
+    reveal(a);
+  });
+  document.querySelectorAll('.opt input').forEach(function(inp){
+    inp.addEventListener('change', function(){
+      document.querySelectorAll('input[name="' + inp.name + '"]').forEach(function(o){ o.closest('.opt').classList.remove('sel'); });
+      inp.closest('.opt').classList.add('sel');
+    });
+  });
+
+  var prog = loadP(), entry = prog[PID] || {};
+  if (entry.committed && entry.answers){
+    Object.keys(entry.answers).forEach(function(q){
+      var inp = document.querySelector('input[name="' + q + '"][value="' + entry.answers[q] + '"]');
+      if (inp){ inp.checked = true; inp.closest('.opt').classList.add('sel'); }
+    });
+    reveal(entry.answers);
+  }
+  function paintDone(){
+    var p = loadP(), e = p[PID] || {};
+    if (e.done){
+      $('markDone').textContent = '✓ Completed';
+      $('markDone').disabled = true;
+      $('doneNote').textContent = 'Saved on this device. Your home page shows this problem as done.';
+    }
+  }
+  $('markDone').addEventListener('click', function(){
+    var p = loadP(); p[PID] = p[PID] || {}; p[PID].done = true; saveP(p); paintDone();
+  });
+  $('resetProblem').addEventListener('click', function(){
+    var p = loadP(); delete p[PID]; saveP(p); location.reload();
+  });
+  paintDone();
+})();
+</script>
+</body>
+</html>
