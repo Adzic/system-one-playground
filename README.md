@@ -27,17 +27,9 @@ Progress (committed answers, completed problems) is stored in `localStorage` und
 
 `interview.html` is the gym's opposite: no simulations, no commits, just seven open interview questions in the manner of Ilya Sutskever's documented interview method — one simple question, then a ladder of whys — rebuilt for working data scientists. Each card hides its ladder until you have answered. The page states its framing plainly at the top: these are **reconstructions in his style, not quotations** of real questions he has asked.
 
-## 🎮 Calibration Duel (the original game)
+## Calibration Duel — retired
 
-The game that used to be the home page now lives at **`duel.html`**, unchanged apart from a link back home. Ten statements, true or false. Each round:
-
-1. You lock in **your** P(true).
-2. The engine reveals **its** P(true) — a small NLI model (`Xenova/nli-deberta-v3-xsmall`) running live in your browser via Transformers.js.
-3. You choose **AUTO-ACT** (+100/−200), **ESCALATE** (+20/−10), or **SKIP** (0/0).
-
-Two scores: **points** (decision quality under uncertainty) and **Brier score** (calibration — mean((p − truth)²), lower wins; a proper scoring rule, so your best move is to report what you actually believe). With these stakes the optimal policy is SKIP below 33%, ESCALATE 33–70%, AUTO-ACT above 70% — the thresholds fall out of the payoffs, not vibes.
-
-First load downloads the model once and caches it; afterwards the Duel works offline. The gym pages need no download at all.
+The original game (an in-browser NLI model, Brier scoring, asymmetric stakes) was retired on Nov 21, 2026: it had no players anymore. `duel.html` is removed from the live site; the file remains in this repo's history if it is ever wanted back.
 
 ## Run it
 
