@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>The Even Dice Trap — Coacerva</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <style>
   :root{
     --bg:#0a0d13; --panel:#111724; --panel2:#0d121d; --line:#223047;
@@ -57,8 +58,10 @@
   .mech p,.atwork p{margin:0 0 10px;font-size:15px}
   .mech p:last-child,.atwork p:last-child{margin-bottom:0}
   code,.mono{font-family:var(--mono);color:var(--accent);font-size:.92em}
-  .formula{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:10px;
-    padding:10px 14px;margin:0 0 10px;font-size:14px;color:var(--text);overflow-x:auto;white-space:nowrap}
+  .formula{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;margin:0 0 10px;font-size:15px;color:var(--text);overflow-x:auto}
+  .katex-display{margin:8px 0;overflow-x:auto;overflow-y:hidden;padding:3px 0}
+  .formula .katex-display{margin:0;padding:0}
   .completebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .resetlink{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:12px;cursor:pointer;text-decoration:underline;padding:0}
   .resetlink:hover{color:var(--red)}
@@ -109,10 +112,10 @@
     <div class="card mech">
       <h2><span class="beatno">Beat 3</span> · The mechanism</h2>
       <p>The tempting answer is 3: every roll was even, so the die "effectively" had faces 2, 4, 6, and the expected wait for one face of three is 3. That reasoning is wrong, and it is worth seeing exactly where. Conditioning on all rolls being even does not rebuild the die. It reweights the possible histories, and it punishes long ones, because a long history has more chances to contain an odd roll and get disqualified.</p>
-      <p>Sort each roll into three kinds. Odd, probability 3/6. A 6, probability 1/6. Filler, meaning a 2 or a 4, probability 2/6. Filler rolls change nothing except the count. The condition holds exactly when the first <i>decisive</i> roll, the first roll that is odd or a 6, turns out to be the 6. And the number of filler rolls before that first decisive roll does not depend on which decisive face wins.</p>
-      <p>So count in two pieces. Filler arrives with probability 1/3 per roll against 2/3 for a decisive roll, so the expected number of fillers before the first decisive roll is (1/3)/(2/3) = 1/2. Add the final 6:</p>
-      <p class="formula">E[rolls | all even] = 1/2 + 1 = 3/2</p>
-      <p>Bayes agrees, as a check. The probability of stopping at roll n <i>and</i> satisfying the condition is (1/6)(1/3)<sup>n&minus;1</sup>, since each pre-final roll must land on 2 or 4 out of the live possibilities. Summing over n, the condition itself has probability 1/4. Dividing through leaves a geometric distribution with ratio 1/3, whose mean is 3/2, and whose first term says two thirds of all conditioned runs end in exactly one roll. That is the simulation's "ended in 1 roll" number, and it is the whole intuition: most conditioned worlds are the boring one where you simply roll a 6 immediately.</p>
+      <p>Sort each roll into three kinds. Odd, probability \(\frac{3}{6}\). A 6, probability \(\frac{1}{6}\). Filler, meaning a 2 or a 4, probability \(\frac{2}{6}\). Filler rolls change nothing except the count. The condition holds exactly when the first <i>decisive</i> roll, the first roll that is odd or a 6, turns out to be the 6. And the number of filler rolls before that first decisive roll does not depend on which decisive face wins.</p>
+      <p>So count in two pieces. Filler arrives with probability \(\frac{1}{3}\) per roll against \(\frac{2}{3}\) for a decisive roll, so the expected number of fillers before the first decisive roll is \(\frac{1/3}{2/3} = \frac{1}{2}\). Add the final 6:</p>
+      <p class="formula">\[E[\text{rolls} \mid \text{all even}] = \frac{1}{2} + 1 = \frac{3}{2}\]</p>
+      <p>Bayes agrees, as a check. The probability of stopping at roll \(n\) <i>and</i> satisfying the condition is \(\frac{1}{6}\left(\frac{1}{3}\right)^{n-1}\), since each pre-final roll must land on 2 or 4 out of the live possibilities. Summing over \(n\), the condition itself has probability \(\frac{1}{4}\). Dividing through leaves a geometric distribution with ratio \(\frac{1}{3}\), whose mean is \(\frac{3}{2}\), and whose first term says two thirds of all conditioned runs end in exactly one roll. That is the simulation's "ended in 1 roll" number, and it is the whole intuition: most conditioned worlds are the boring one where you simply roll a 6 immediately.</p>
     </div>
 
     <div class="card atwork">
@@ -274,6 +277,21 @@
   });
   paintDone(); paint();
 })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    if (window.renderMathInElement){
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "\\[", right: "\\]", display: true},
+          {left: "\\(", right: "\\)", display: false}
+        ],
+        throwOnError: false
+      });
+    }
+  });
 </script>
 </body>
 </html>
