@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Ridge, Seen Sideways — Coacerva</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <style>
   :root{
     --bg:#0a0d13; --panel:#111724; --panel2:#0d121d; --line:#223047;
@@ -69,8 +70,10 @@
   .mech p,.atwork p{margin:0 0 10px;font-size:15px}
   .mech p:last-child,.atwork p:last-child{margin-bottom:0}
   code,.mono{font-family:var(--mono);color:var(--accent);font-size:.92em}
-  .formula{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:10px;
-    padding:10px 14px;margin:0 0 10px;font-size:14px;color:var(--text);overflow-x:auto;white-space:nowrap}
+  .formula{background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;margin:0 0 10px;font-size:15px;color:var(--text);overflow-x:auto}
+  .katex-display{margin:8px 0;overflow-x:auto;overflow-y:hidden;padding:3px 0}
+  .formula .katex-display{margin:0;padding:0}
   .completebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .resetlink{background:none;border:none;color:var(--muted);font-family:var(--mono);font-size:12px;cursor:pointer;text-decoration:underline;padding:0}
   .resetlink:hover{color:var(--red)}
@@ -108,16 +111,16 @@
     <div class="card">
       <h2><span class="beatno">Beat 2</span> · See it</h2>
       <div class="verdict" id="verdict"></div>
-      <p style="margin:0">A design with five principal directions whose spreads differ wildly, singular values d = 10, 3, 1, 0.3, 0.1. That last direction is the collinear one: the data moves along it a hundred times less than along the first. Each bar is the weight a method gives that direction in the fitted values. OLS gives every direction weight exactly 1, the dashed line. Drag &lambda; and watch which bars ridge taxes first. Drag k and watch PCR do the same job with a guillotine instead of a tax schedule.</p>
+      <p style="margin:0">A design with five principal directions whose spreads differ wildly, singular values \(d = 10, 3, 1, 0.3, 0.1\). That last direction is the collinear one: the data moves along it a hundred times less than along the first. Each bar is the weight a method gives that direction in the fitted values. OLS gives every direction weight exactly 1, the dashed line. Drag \(\lambda\) and watch which bars ridge taxes first. Drag \(k\) and watch PCR do the same job with a guillotine instead of a tax schedule.</p>
       <div class="chartbox"><svg id="filter" viewBox="0 0 800 330" role="img" aria-label="Ridge and PCR filter weights per principal direction"></svg></div>
-      <p class="legend"><span class="sw" style="background:#5eead4"></span>ridge weight d&sup2;/(d&sup2;+&lambda;)<span class="sw" style="background:#a78bfa"></span>PCR weight (top k kept)</p>
+      <p class="legend"><span class="sw" style="background:#5eead4"></span>ridge weight \(\frac{d^2}{d^2 + \lambda}\)<span class="sw" style="background:#a78bfa"></span>PCR weight (top \(k\) kept)</p>
       <div class="sliderrow">
-        <label for="lamSlider">RIDGE &lambda;</label>
+        <label for="lamSlider">RIDGE \(\lambda\)</label>
         <input type="range" id="lamSlider" min="0" max="100" value="50">
         <span class="val" id="lamVal">&lambda; = 1</span>
       </div>
       <div class="sliderrow">
-        <label for="kSlider">PCR k</label>
+        <label for="kSlider">PCR \(k\)</label>
         <input type="range" id="kSlider" min="0" max="5" step="1" value="3">
         <span class="val" id="kVal">k = 3</span>
       </div>
@@ -132,19 +135,19 @@
 
     <div class="card mech">
       <h2><span class="beatno">Beat 3</span> · The mechanism</h2>
-      <p>Ridge minimizes &parallel;y &minus; X&beta;&parallel;&sup2; + &lambda;&parallel;&beta;&parallel;&sup2;. The gradient condition gives the penalized normal equations, and the closed form:</p>
-      <p class="formula">&beta;&#770;<sub>ridge</sub> = (X<sup>T</sup>X + &lambda;I)<sup>&minus;1</sup> X<sup>T</sup>y</p>
-      <p>The +&lambda;I is already the collinearity fix in embryo: X<sup>T</sup>X may be singular, but X<sup>T</sup>X + &lambda;I never is for &lambda; &gt; 0, because every eigenvalue is lifted by &lambda;. Now substitute the SVD, X = U&Sigma;V<sup>T</sup>, with singular values d<sub>j</sub>. The fitted values collapse into a sum over principal directions:</p>
-      <p class="formula">&ycirc;<sub>ridge</sub> = &Sigma;<sub>j</sub> u<sub>j</sub> &middot; [ d<sub>j</sub>&sup2; / (d<sub>j</sub>&sup2; + &lambda;) ] &middot; (u<sub>j</sub><sup>T</sup> y)</p>
-      <p>OLS is the same sum with every bracket equal to 1. So ridge keeps OLS's basis and OLS's coordinates, and multiplies the coordinate along each direction u<sub>j</sub> by the factor d<sub>j</sub>&sup2;/(d<sub>j</sub>&sup2; + &lambda;). Where d<sub>j</sub>&sup2; is much larger than &lambda;, the factor is near 1 and the direction passes almost untouched. Where d<sub>j</sub>&sup2; is much smaller than &lambda;, the factor is near d<sub>j</sub>&sup2;/&lambda;, close to zero, and the direction is quietly suffocated. The shrinkage is aimed: it falls hardest exactly where the data is thinnest.</p>
-      <p>That aim is the answer to the collinearity problem. In coefficient space, OLS's coordinate along v<sub>j</sub> is (u<sub>j</sub><sup>T</sup>y)/d<sub>j</sub>: it <i>divides</i> by the singular value, so noise along a thin direction is amplified by 1/d<sub>j</sub>, and the coefficient variance along it is &sigma;&sup2;/d<sub>j</sub>&sup2;. Huge coefficients, opposite signs, wild swings between samples. Ridge refuses the division precisely where the division is reckless.</p>
-      <p>PCR is the same spectral idea with a cruder filter: keep the top k directions at weight exactly 1, set the rest to exactly 0. A step where ridge has a ramp. Two consequences. PCR fully trusts direction k even if it is still mostly noise, and fully deletes direction k+1 even if it carries the signal; ridge never does either. And the complexity accounting matches the filter shape: PCR's degrees of freedom are the integer k, while ridge's are &Sigma;<sub>j</sub> d<sub>j</sub>&sup2;/(d<sub>j</sub>&sup2; + &lambda;), a smooth dial, which is what the effective df readout above is computing live.</p>
-      <p>One shared blind spot, worth naming: both methods rank directions by variance in X alone, never by relevance to y. A quiet direction can be the predictive one, and both ridge and PCR will punish it for being quiet. Partial least squares exists to close exactly that gap, by ordering directions by covariance with y instead.</p>
+      <p>Ridge minimizes \(\lVert y - X\beta \rVert^2 + \lambda \lVert \beta \rVert^2\). The gradient condition gives the penalized normal equations, and the closed form:</p>
+      <p class="formula">\[\hat{\beta}_{\mathrm{ridge}} = (X^\top X + \lambda I)^{-1} X^\top y\]</p>
+      <p>The \(+\lambda I\) is already the collinearity fix in embryo: \(X^\top X\) may be singular, but \(X^\top X + \lambda I\) never is for \(\lambda > 0\), because every eigenvalue is lifted by \(\lambda\). Now substitute the SVD, \(X = U \Sigma V^\top\), with singular values \(d_j\). The fitted values collapse into a sum over principal directions:</p>
+      <p class="formula">\[\hat{y}_{\mathrm{ridge}} = \sum_j u_j \, \frac{d_j^2}{d_j^2 + \lambda} \, (u_j^\top y)\]</p>
+      <p>OLS is the same sum with every bracket equal to 1. So ridge keeps OLS's basis and OLS's coordinates, and multiplies the coordinate along each direction \(u_j\) by the factor \(\frac{d_j^2}{d_j^2 + \lambda}\). Where \(d_j^2 \gg \lambda\), the factor is near 1 and the direction passes almost untouched. Where \(d_j^2 \ll \lambda\), the factor is near \(\frac{d_j^2}{\lambda}\), close to zero, and the direction is quietly suffocated. The shrinkage is aimed: it falls hardest exactly where the data is thinnest.</p>
+      <p>That aim is the answer to the collinearity problem. In coefficient space, OLS's coordinate along \(v_j\) is \(\frac{u_j^\top y}{d_j}\): it <i>divides</i> by the singular value, so noise along a thin direction is amplified by \(\frac{1}{d_j}\), and the coefficient variance along it is \(\frac{\sigma^2}{d_j^2}\). Huge coefficients, opposite signs, wild swings between samples. Ridge refuses the division precisely where the division is reckless.</p>
+      <p>PCR is the same spectral idea with a cruder filter: keep the top \(k\) directions at weight exactly 1, set the rest to exactly 0. A step where ridge has a ramp. Two consequences. PCR fully trusts direction \(k\) even if it is still mostly noise, and fully deletes direction \(k + 1\) even if it carries the signal; ridge never does either. And the complexity accounting matches the filter shape: PCR's degrees of freedom are the integer \(k\), while ridge's are \(\sum_j \frac{d_j^2}{d_j^2 + \lambda}\), a smooth dial, which is what the effective df readout above is computing live.</p>
+      <p>One shared blind spot, worth naming: both methods rank directions by variance in \(X\) alone, never by relevance to \(y\). A quiet direction can be the predictive one, and both ridge and PCR will punish it for being quiet. Partial least squares exists to close exactly that gap, by ordering directions by covariance with y instead.</p>
     </div>
 
     <div class="card atwork">
       <h2><span class="beatno">Beat 4</span> · At work</h2>
-      <p>Operational data is collinear by construction. Call counts, hold time, transfers, and repeat contacts all rise together because they are all shadows of the same underlying event, a bad day for a member or a broken process upstream. Fit an unpenalized model and you get the signature pathology: enormous coefficients with opposite signs on features that measure the same thing, a model that scores fine in aggregate and explains itself absurdly, and coefficient estimates that reshuffle completely when next month's data lands. Ridge is the safe default in this terrain, not because it is clever, but because of how it fails. It spreads weight across the correlated group, keeps predictions stable, and when the penalty wins entirely it degrades to predicting the mean, a shrug, rather than a story. The standing warning travels with it: under heavy collinearity, no method recovers what each individual feature "really" contributes. Prediction is the product. Anyone selling you per-feature truth from collinear data is selling the 1/d<sub>j</sub> amplification with better marketing.</p>
+      <p>Operational data is collinear by construction. Call counts, hold time, transfers, and repeat contacts all rise together because they are all shadows of the same underlying event, a bad day for a member or a broken process upstream. Fit an unpenalized model and you get the signature pathology: enormous coefficients with opposite signs on features that measure the same thing, a model that scores fine in aggregate and explains itself absurdly, and coefficient estimates that reshuffle completely when next month's data lands. Ridge is the safe default in this terrain, not because it is clever, but because of how it fails. It spreads weight across the correlated group, keeps predictions stable, and when the penalty wins entirely it degrades to predicting the mean, a shrug, rather than a story. The standing warning travels with it: under heavy collinearity, no method recovers what each individual feature "really" contributes. Prediction is the product. Anyone selling you per-feature truth from collinear data is selling the \(\frac{1}{d_j}\) amplification with better marketing.</p>
     </div>
 
     <div class="card">
@@ -286,6 +289,21 @@
   });
   paintDone(); paintFilter();
 })();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    if (window.renderMathInElement){
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "\\[", right: "\\]", display: true},
+          {left: "\\(", right: "\\)", display: false}
+        ],
+        throwOnError: false
+      });
+    }
+  });
 </script>
 </body>
 </html>
