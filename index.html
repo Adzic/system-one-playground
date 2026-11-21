@@ -90,6 +90,27 @@
     <div class="meta"><span>≈ 6 min</span><span class="doneflag no" data-doneflag="ridge">Not started</span></div>
   </a>
 
+  <a class="pcard" href="problems/correlation.html">
+    <span class="pnum">PROBLEM 5 · SIMULATION</span>
+    <h3>Build a Correlation</h3>
+    <p class="hook">Two shocks, one dial: build any correlation you like.</p>
+    <div class="meta"><span>≈ 5 min</span><span class="doneflag no" data-doneflag="correlation">Not started</span></div>
+  </a>
+
+  <a class="pcard" href="problems/impossible.html">
+    <span class="pnum">PROBLEM 6 · CORRELATION BOUNDS</span>
+    <h3>The Correlation That Cannot Exist</h3>
+    <p class="hook">Two correlations are pinned at 0.8. The third refuses to be small.</p>
+    <div class="meta"><span>≈ 6 min</span><span class="doneflag no" data-doneflag="impossible">Not started</span></div>
+  </a>
+
+  <a class="pcard" href="problems/rareevent.html">
+    <span class="pnum">PROBLEM 7 · RARE EVENTS</span>
+    <h3>The Event You Never See</h3>
+    <p class="hook">Ten thousand samples, and the event never happens.</p>
+    <div class="meta"><span>≈ 6 min</span><span class="doneflag no" data-doneflag="rareevent">Not started</span></div>
+  </a>
+
   <footer>
     <a href="duel.html">Calibration Duel — the original game →</a><br>
     coacerva · everything runs in your browser · progress is saved on this device only
@@ -101,7 +122,7 @@
   var KEY = 'coacerva_progress';
   var progress = {};
   try { progress = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { progress = {}; }
-  var ids = ['duplicate', 'dice', 'noise', 'ridge'];
+  var ids = ['duplicate', 'dice', 'noise', 'ridge', 'correlation', 'impossible', 'rareevent'];
   var doneCount = 0;
   ids.forEach(function(id){
     var el = document.querySelector('[data-doneflag="' + id + '"]');
@@ -116,7 +137,7 @@
   var line = document.getElementById('progressLine');
   line.innerHTML = doneCount === 0
     ? 'No problems completed yet. Pick one and commit to an answer.'
-    : 'You have finished <b>' + doneCount + ' of 4</b> problems.' + (doneCount === 4 ? ' The whole pile. Nicely done.' : '');
+    : 'You have finished <b>' + doneCount + ' of 7</b> problems.' + (doneCount === 7 ? ' The whole pile. Nicely done.' : '');
 })();
 </script>
 </body>
