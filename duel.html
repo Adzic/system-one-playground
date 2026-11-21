@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calibration Duel — you vs the engine</title>
+<style>
+  :root{
+    --bg:#0a0d13; --panel:#111724; --panel2:#0d121d; --line:#223047;
+    --text:#e9edf5; --muted:#8d99b0; --accent:#5eead4;
+    --amber:#fbbf24; --green:#34d399; --violet:#a78bfa;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--text);
+    background:radial-gradient(1200px 600px at 80% -10%,#12233a 0%,var(--bg) 55%) fixed,var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+  .wrap{max-width:860px;margin:0 auto;padding:28px 18px 80px}
+  .logo{font-family:var(--mono);font-weight:700;letter-spacing:.14em;font-size:13px;color:var(--accent);
+    border:1px solid var(--line);padding:8px 12px;border-radius:10px;background:rgba(94,234,212,.06);display:inline-block}
+  h1{font-size:30px;margin:14px 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0 0 18px;max-width:660px}
+  .sub b{color:var(--text)}
+  .status{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:10px 14px;font-family:var(--mono);font-size:12.5px;margin-bottom:6px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px var(--amber);flex:none}
+  .dot.ready{background:var(--green);box-shadow:0 0 12px var(--green)}
+  .dot.error{background:#f87171;box-shadow:0 0 12px #f87171}
+  .bar{height:4px;background:#1b2436;border-radius:2px;overflow:hidden;margin:0 0 14px;display:none}
+  .bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:12.5px;font-family:var(--mono);letter-spacing:.12em;color:var(--muted);margin:0 0 10px;text-transform:uppercase}
+  textarea,input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);
+    color:var(--text);border-radius:10px;padding:10px 12px;font-size:15px;font-family:inherit}
+  textarea{min-height:104px;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--accent)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--text);border-radius:999px;padding:7px 13px;cursor:pointer}
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+  .qcard{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--panel2)}
+  .qhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .qhead input{flex:1}
+  .badge{font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:4px 9px;border-radius:6px;font-weight:700;flex:none}
+  .b-choice{background:rgba(94,234,212,.14);color:var(--accent)}
+  .b-score{background:rgba(251,191,36,.14);color:var(--amber)}
+  .b-noul{background:rgba(167,139,250,.16);color:var(--violet)}
+  .iconbtn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px;flex:none}
+  .iconbtn:hover{color:#f87171;border-color:#f87171}
+  .optrow{display:flex;gap:8px;margin-bottom:8px}
+  .optrow input{flex:1}
+  .mini{background:none;border:1px dashed var(--line);color:var(--muted);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12.5px;font-family:var(--mono)}
+  .mini:hover{color:var(--accent);border-color:var(--accent)}
+  .addrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .btn{font-family:var(--mono);font-size:13px;letter-spacing:.04em;border:1px solid var(--line);background:var(--panel);
+    color:var(--text);border-radius:10px;padding:9px 14px;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#06251f;font-weight:700;font-size:16px;
+    padding:14px 22px;border-radius:12px;width:100%;margin-top:2px;letter-spacing:.06em}
+  .btn.primary:disabled{opacity:.45;cursor:not-allowed}
+  .btn.primary:not(:disabled):hover{filter:brightness(1.08);color:#06251f}
+  .tauval{font-family:var(--mono);font-size:15px;color:var(--accent);min-width:52px;text-align:right}
+  .hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+  .result{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:var(--panel2)}
+  .rhead{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .rhead .q{font-weight:600}
+  .verdict{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;
+    padding:6px 12px;border-radius:999px;white-space:nowrap}
+  .v-act{background:rgba(52,211,153,.13);color:var(--green);border:1px solid rgba(52,211,153,.45)}
+  .v-esc{background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.45)}
+  .opt{margin-bottom:9px}
+  .opt .lbl{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:4px}
+  .opt .lbl .p{font-family:var(--mono);color:var(--muted);flex:none}
+  .track{height:9px;background:#1b2436;border-radius:5px;overflow:hidden}
+  .track>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2dd4bf,#5eead4);border-radius:5px;transition:width .6s ease}
+  .opt.top .lbl{font-weight:700}
+  .opt.top .lbl .p{color:var(--accent)}
+  .bignum{font-family:var(--mono);font-size:46px;font-weight:700;color:var(--accent);margin:2px 0 8px;line-height:1.1}
+  .bignum small{font-size:16px;color:var(--muted);font-weight:400}
+  .meta{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:10px}
+  .summary{font-family:var(--mono);font-size:13px;background:rgba(94,234,212,.06);
+    border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+  .summary b{color:var(--accent)}
+  details.how{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--panel);margin-top:18px}
+  details.how summary{cursor:pointer;font-weight:600}
+  details.how p,details.how li{color:var(--muted);font-size:14px}
+  details.how code{font-family:var(--mono);color:var(--accent);font-size:13px}
+  footer{margin-top:26px;color:var(--muted);font-size:12px;font-family:var(--mono);text-align:center}
+  .empty{color:var(--muted);font-family:var(--mono);font-size:13px;text-align:center;padding:20px}
+  .callrow{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .callrow .callabel{font-family:var(--mono);font-size:12px;color:var(--muted);flex:none}
+  .callrow select{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;min-width:0}
+  .callout{margin-top:10px;font-size:13.5px;border-radius:10px;padding:9px 12px;border:1px solid var(--line);background:rgba(94,234,212,.05)}
+  .callout.win{border-color:rgba(52,211,153,.5);color:var(--green)}
+  .callout.lose{border-color:rgba(251,191,36,.5);color:var(--amber)}
+  .callout b{color:var(--text)}
+  .gsub{color:var(--muted);font-size:14.5px;margin:0 0 12px}
+  .gsub b{color:var(--text)}
+  .paytable{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:6px}
+  .payrow{display:grid;grid-template-columns:1fr 90px 90px;text-align:center;font-size:13.5px}
+  .payrow span{padding:8px;border-top:1px solid var(--line)}
+  .payrow span:first-child{text-align:left;padding-left:12px}
+  .payrow.phead{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em}
+  .payrow.phead span{border-top:none}
+  .pos{color:var(--green)} .neg{color:#f87171}
+  .gboard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+  .gstat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .gk{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted)}
+  .gv{display:block;font-family:var(--mono);font-size:19px;color:var(--accent);margin-top:2px}
+  .gstmt{font-size:19px;font-weight:600;margin-bottom:14px;line-height:1.45}
+  .glabel{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:8px}
+  .gslider{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .gslider input[type=range]{flex:1;accent-color:var(--accent);height:32px}
+  .gtauval{font-family:var(--mono);font-size:22px;color:var(--accent);min-width:64px;text-align:right}
+  .gprobs{display:flex;gap:10px;margin-bottom:14px}
+  .gp{flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel2);min-width:0}
+  .gp span{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--muted)}
+  .gp b{display:block;font-family:var(--mono);font-size:24px;color:var(--accent);margin:2px 0 6px}
+  .gact{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}
+  .btn.act{display:flex;flex-direction:column;gap:2px;font-size:13px;padding:12px 6px}
+  .btn.act span{font-family:var(--mono);font-size:10.5px;color:var(--muted);font-weight:400}
+  .greveal{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:.12em;text-align:center;border-radius:10px;padding:10px;margin-bottom:12px}
+  .greveal.true{background:rgba(52,211,153,.13);color:var(--green);border:1px solid rgba(52,211,153,.45)}
+  .greveal.false{background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.45)}
+  .gdelta{font-family:var(--mono);font-size:34px;font-weight:700;text-align:center;margin:6px 0}
+  .gdelta.pos{color:var(--green)} .gdelta.neg{color:#f87171}
+  .gdetail{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;line-height:1.7}
+  .gverdict{font-size:17px;font-weight:600;margin-bottom:10px}
+  .gfinal{font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.8}
+  .gfinal b{color:var(--text)}
+  .ghist{font-family:var(--mono);font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-bottom:14px;line-height:1.9}
+  .gthink{text-align:center;color:var(--muted);font-family:var(--mono);font-size:13px;padding:26px 0}
+  .gbtnrow{display:flex;gap:8px;margin-top:10px}
+  .gbtnrow .btn{flex:1}
+  .gbtnrow .btn.primary{width:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p style="margin:0 0 14px;font-family:var(--mono);font-size:12.5px"><a href="index.html" style="color:var(--muted);text-decoration:none">&larr; Coacerva home</a></p>
+  <div class="logo">SYSTEM&nbsp;ONE</div>
+  <h1>Calibration Duel</h1>
+  <p class="sub">A Jev-inspired game: 10 statements, true or false. Your probabilities against a small AI's — scored on <b>calibration</b> and <b>points</b>. Runs <b>entirely in your browser</b>. No API key. No payment. No sign-up.</p>
+
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">Preparing…</span></div>
+  <div class="bar" id="loadbar"><i id="loadfill"></i></div>
+
+  <div id="gameView">
+    <div class="card" id="ghero">
+      <h2>🎮 Calibration Duel — you vs the engine</h2>
+      <p class="gsub">10 statements. Some true, some false. Lock in <b>your</b> probability, see the <b>engine's</b>, then decide: <b>AUTO-ACT</b>, <b>ESCALATE</b>, or <b>SKIP</b>. You're scored twice — on <b>calibration</b> (Brier score, lower wins; the same objective RLCD trains on) and on <b>points</b>.</p>
+      <div class="paytable">
+        <div class="payrow phead"><span></span><span>if TRUE</span><span>if FALSE</span></div>
+        <div class="payrow"><span><b>⚡ AUTO-ACT</b></span><span class="pos">+100</span><span class="neg">−200</span></div>
+        <div class="payrow"><span><b>🙋 ESCALATE</b></span><span class="pos">+20</span><span class="neg">−10</span></div>
+        <div class="payrow"><span><b>⏭ SKIP</b></span><span>0</span><span>0</span></div>
+      </div>
+      <p class="hint" id="tauHint"></p>
+      <details class="how" style="margin:0 0 12px">
+        <summary>🤖 How does the engine guess?</summary>
+        <p>The engine is a small AI language model running <b>entirely in your browser</b> — nothing leaves your device. For each statement it asks itself: <i>does this read more like something true, or something false?</i> It scores both, squashes the two into one probability, and that's its guess.</p>
+        <p>It does <b>not</b> look anything up. It's pattern-matching on language — which is exactly why it can be confident and wrong. The points punish that: act on a wrong guess and it's −200.</p>
+        <p><b>Points:</b> AUTO-ACT is high risk, high reward (+100/−200). ESCALATE is the safe middle (+20/−10). SKIP is 0. The 33%/70% lines above aren't chosen — they fall out of the math given these stakes. Change the stakes and the lines move.</p>
+        <p><b>Calibration:</b> after each round, both you and the engine get a Brier score — the average of (your probability − truth)². Lower is better. It's a <i>proper</i> scoring rule: your best strategy is to report what you actually believe, not to game it. Over 10 rounds, whoever's probabilities match reality better wins calibration — even if they lose on points.</p>
+      </details>
+      <button class="btn primary" id="gstart">▸ START DUEL</button>
+    </div>
+    <div id="gboard" class="gboard" style="display:none">
+      <div class="gstat"><span class="gk">ROUND</span><span class="gv" id="gRound">1/10</span></div>
+      <div class="gstat"><span class="gk">POINTS</span><span class="gv" id="gPoints">+0</span></div>
+      <div class="gstat"><span class="gk">BRIER · YOU</span><span class="gv" id="gBrierYou">—</span></div>
+      <div class="gstat"><span class="gk">BRIER · ENG</span><span class="gv" id="gBrierEng">—</span></div>
+    </div>
+    <div id="gstage"></div>
+  </div>
+
+  <details class="how">
+    <summary>How this works (honest version)</summary>
+    <p><b>The engine:</b> a small open-weights language model (<code>Xenova/nli-deberta-v3-xsmall</code>) running 100% in your browser via Transformers.js. For each statement it scores how much the text reads "true" vs "false" and normalizes the two into a probability. It doesn't look anything up — it guesses from language patterns, which is exactly why it can be confidently wrong.</p>
+    <p><b>The scoring:</b> the Brier score — mean((your probability − truth)²), lower wins — is a <i>proper</i> scoring rule: your best move is to report what you actually believe. It's also the objective behind RLCD, the training method behind the real Jev — the reason Jev's probabilities are meant to mean something.</p>
+    <p><b>The thresholds:</b> 33% and 70% aren't chosen — they fall out of the payoff table. Change the stakes, the lines move. That's the real lesson: autonomy thresholds come from economics, not vibes.</p>
+    <p><b>What's not real Jev:</b> the real Jev trains its probabilities to be calibrated; these are raw scores from a tiny model — demo-grade. But the duel <i>measures</i> calibration live instead of asserting it, which is the honest version of the claim.</p>
+  </details>
+
+  <footer>calibration duel · runs on your device · nothing you type leaves the browser</footer>
+</div>
+
+<script type="module">
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+env.allowLocalModels = false;
+
+const MODEL_ID = 'Xenova/nli-deberta-v3-xsmall';
+let classifier = null;
+let questions = [];
+let qseq = 0;
+
+const $ = id => document.getElementById(id);
+const dot = $('dot'), statusText = $('statusText'), loadbar = $('loadbar'), loadfill = $('loadfill');
+
+function setStatus(mode, msg){
+  dot.className = 'dot' + (mode === 'ready' ? ' ready' : mode === 'error' ? ' error' : '');
+  statusText.textContent = msg;
+}
+
+async function ensureModel(){
+  if (classifier) return classifier;
+  setStatus('loading', 'Downloading decision engine (one time)…');
+  loadbar.style.display = 'block';
+  try {
+    classifier = await pipeline('zero-shot-classification', MODEL_ID, {
+      progress_callback: (p) => {
+        if (p.status === 'progress' && p.total) {
+          const pct = Math.round(100 * p.loaded / p.total);
+          loadfill.style.width = pct + '%';
+          statusText.textContent = 'Downloading ' + p.file + ' — ' + pct + '%';
+        }
+      }
+    });
+    loadbar.style.display = 'none';
+    setStatus('ready', 'Engine ready — running 100% in your browser');
+  } catch (e) {
+    console.error(e);
+    loadbar.style.display = 'none';
+    setStatus('error', 'Could not load the model (network needed once). Reload to retry.');
+  }
+  return classifier;
+}
+
+/* ---------- inference ---------- */
+function norm(scores){
+  const s = scores.reduce((a, b) => a + b, 0) || 1;
+  return scores.map(x => x / s);
+}
+
+/* zero-shot pipeline returns {labels, scores}; text-classification returns [{label, score}] */
+function zsPairs(out){
+  if (Array.isArray(out)) return out.map(o => [o.label, o.score]);
+  if (out && Array.isArray(out.labels) && Array.isArray(out.scores))
+    return out.labels.map((l, i) => [l, out.scores[i]]);
+  throw new Error('Unexpected classifier output shape.');
+}
+
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- game: calibration duel ---------- */
+const STATEMENTS = [
+  { t: 'Water boils at 100°C at sea level.', a: true },
+  { t: 'Bananas are berries, botanically speaking.', a: true },
+  { t: 'Strawberries are berries, botanically speaking.', a: false },
+  { t: 'Cleopatra lived closer in time to the Moon landing than to the construction of the pyramids.', a: true },
+  { t: 'Sharks are older than trees.', a: true },
+  { t: 'There are more possible chess games than atoms in the observable universe.', a: true },
+  { t: 'Octopuses have three hearts.', a: true },
+  { t: 'The inventor of the Pringles can is buried in a Pringles can.', a: true },
+  { t: 'Venus is the hottest planet in the solar system.', a: true },
+  { t: "Scotland's national animal is the unicorn.", a: true },
+  { t: 'Wombat poop is cube-shaped.', a: true },
+  { t: 'A day on Venus is longer than a year on Venus.', a: true },
+  { t: 'The dot over the lowercase letter i has a name: tittle.', a: true },
+  { t: 'Sound travels faster in water than in air.', a: true },
+  { t: 'Honey never spoils; edible honey was found in ancient Egyptian tombs.', a: true },
+  { t: 'A group of flamingos is called a flamboyance.', a: true },
+  { t: 'The word "robot" comes from a Czech word for forced labor.', a: true },
+  { t: 'The Moon is slowly moving away from Earth.', a: true },
+  { t: 'Tomatoes are fruits, botanically speaking.', a: true },
+  { t: 'Humans share about 60% of their DNA with bananas.', a: true },
+  { t: 'The Great Wall of China is visible from the Moon with the naked eye.', a: false },
+  { t: 'Goldfish have a three-second memory.', a: false },
+  { t: 'Napoleon was unusually short for a Frenchman of his time.', a: false },
+  { t: 'Lightning never strikes the same place twice.', a: false },
+  { t: 'Coca-Cola was originally green.', a: false },
+  { t: 'Mount Everest is the tallest mountain on Earth from base to peak.', a: false },
+  { t: "The Rubik's Cube was invented in Japan.", a: false },
+  { t: 'Albert Einstein failed mathematics in school.', a: false },
+  { t: 'Bulls are enraged by the color red.', a: false },
+  { t: 'The first oranges grown in Asia were orange in color.', a: false }
+];
+const G_ROUNDS = 10;
+const PAY = { actHit: 100, actMiss: -200, escHit: 20, escMiss: -10 };
+/* optimal thresholds from the stakes: act iff EU(act) > EU(esc), esc iff EU(esc) > 0 */
+const TAU_LO = (0 - PAY.escMiss) / (PAY.escHit - PAY.escMiss);
+const TAU_HI = (PAY.escMiss - PAY.actMiss) / ((PAY.actHit - PAY.escHit) + (PAY.escMiss - PAY.actMiss));
+let G = null;
+
+function gid(id){ return document.getElementById(id); }
+function pct0(x){ return Math.round(x * 100) + '%'; }
+
+function startGame(){
+  const pool = [...STATEMENTS];
+  for (let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  G = { i: 0, points: 0, youB: 0, engB: 0, n: 0, queue: pool.slice(0, G_ROUNDS), hist: [], lock: null };
+  gid('ghero').style.display = 'none';
+  gid('gboard').style.display = 'grid';
+  updateBoard();
+  renderGuess();
+}
+
+function updateBoard(){
+  gid('gRound').textContent = Math.min(G.i + 1, G_ROUNDS) + '/' + G_ROUNDS;
+  gid('gPoints').textContent = (G.points >= 0 ? '+' : '') + G.points;
+  gid('gBrierYou').textContent = G.n ? G.youB.toFixed(3) : '—';
+  gid('gBrierEng').textContent = G.n ? G.engB.toFixed(3) : '—';
+}
+
+function renderGuess(){
+  const s = G.queue[G.i];
+  gid('gstage').innerHTML =
+    `<div class="card"><div class="gstmt">&ldquo;${escapeHtml(s.t)}&rdquo;</div>` +
+    `<label class="glabel">YOUR P &mdash; STATEMENT IS TRUE</label>` +
+    `<div class="gslider"><input type="range" id="gpslider" min="0" max="100" value="50"><span class="gtauval" id="gpval">50%</span></div>` +
+    `<button class="btn primary" id="glock">LOCK IN &rarr;</button>` +
+    `<p class="hint">No hedging: your Brier score this round is (p &minus; truth)&sup2;. Say what you actually believe.</p></div>`;
+  const slider = gid('gpslider'), val = gid('gpval');
+  slider.addEventListener('input', () => { val.textContent = slider.value + '%'; });
+  gid('glock').addEventListener('click', () => lockGuess(parseInt(slider.value, 10) / 100));
+}
+
+async function engineNoul(statement){
+  const out = await classifier('Judge whether the following statement is factually true.', ['true', 'false'], {
+    hypothesis_template: statement + ' This statement is {}.',
+    multi_label: false
+  });
+  const m = Object.fromEntries(zsPairs(out));
+  return norm([m['true'] ?? 0, m['false'] ?? 0])[0];
+}
+
+async function lockGuess(p){
+  G.lock = { p };
+  gid('gstage').innerHTML = `<div class="card"><div class="gthink">engine is thinking&hellip;</div></div>`;
+  await ensureModel();
+  if (!classifier){
+    gid('gstage').innerHTML = `<div class="card"><div class="gthink">Engine failed to load. Check your connection and reload.</div></div>`;
+    return;
+  }
+  try { G.lock.ep = await engineNoul(G.queue[G.i].t); }
+  catch (e){ console.error(e); G.lock.ep = 0.5; }
+  renderAct();
+}
+
+function renderAct(){
+  const s = G.queue[G.i], L = G.lock;
+  gid('gstage').innerHTML =
+    `<div class="card"><div class="gstmt">&ldquo;${escapeHtml(s.t)}&rdquo;</div>` +
+    `<div class="gprobs">` +
+    `<div class="gp"><span>YOU</span><b>${Math.round(L.p * 100)}%</b></div>` +
+    `<div class="gp"><span>ENGINE</span><b>${Math.round(L.ep * 100)}%</b><div class="track"><i style="width:${(L.ep * 100).toFixed(1)}%"></i></div></div>` +
+    `</div><div class="gact">` +
+    `<button class="btn act" data-gact="act">&#9889; AUTO-ACT<span>+100 / &minus;200</span></button>` +
+    `<button class="btn act" data-gact="esc">&#128587; ESCALATE<span>+20 / &minus;10</span></button>` +
+    `<button class="btn act" data-gact="skip">&#9195; SKIP<span>0 / 0</span></button>` +
+    `</div><p class="hint">Stakes say: SKIP below ${pct0(TAU_LO)} &middot; ESCALATE ${pct0(TAU_LO)}&ndash;${pct0(TAU_HI)} &middot; ACT above ${pct0(TAU_HI)}</p></div>`;
+  gid('gstage').querySelectorAll('[data-gact]').forEach(b =>
+    b.addEventListener('click', () => resolveRound(b.dataset.gact)));
+}
+
+function resolveRound(action){
+  const s = G.queue[G.i], L = G.lock;
+  const truth = s.a ? 1 : 0;
+  const pts = action === 'act' ? (truth ? PAY.actHit : PAY.actMiss)
+    : action === 'esc' ? (truth ? PAY.escHit : PAY.escMiss) : 0;
+  const bYou = (L.p - truth) ** 2, bEng = (L.ep - truth) ** 2;
+  G.points += pts;
+  G.youB = (G.youB * G.n + bYou) / (G.n + 1);
+  G.engB = (G.engB * G.n + bEng) / (G.n + 1);
+  G.n++;
+  const aname = action === 'act' ? 'AUTO-ACT' : action === 'esc' ? 'ESCALATE' : 'SKIP';
+  G.hist.push({ truth, p: L.p, ep: L.ep, action: aname, pts });
+  updateBoard();
+  const last = G.i === G_ROUNDS - 1;
+  gid('gstage').innerHTML =
+    `<div class="card"><div class="greveal ${truth ? 'true' : 'false'}">${truth ? '&#10003; TRUE' : '&#10007; FALSE'}</div>` +
+    `<div class="gstmt">&ldquo;${escapeHtml(s.t)}&rdquo;</div>` +
+    `<div class="gdelta ${pts >= 0 ? 'pos' : 'neg'}">${pts >= 0 ? '+' : ''}${pts} pts</div>` +
+    `<div class="gdetail">${aname} &middot; you said ${Math.round(L.p * 100)}% (Brier ${bYou.toFixed(3)}) &middot; engine said ${Math.round(L.ep * 100)}% (Brier ${bEng.toFixed(3)})</div>` +
+    `<button class="btn primary" id="gnext">${last ? 'SEE RESULTS &rarr;' : 'NEXT &rarr;'}</button></div>`;
+  gid('gnext').addEventListener('click', () => { G.i++; if (last) renderEnd(); else renderGuess(); });
+}
+
+function renderEnd(){
+  const d = G.youB - G.engB, EPS = 1e-9;
+  const verdict = d < -EPS ? '&#127942; You were better calibrated than the engine.'
+    : d > EPS ? '&#129302; The engine was better calibrated. It trains for this; you just met it.'
+    : '&#9878;&#65039; Dead heat &mdash; identical calibration. The engine matched you probability for probability.';
+  let best = parseInt(localStorage.getItem('s1duel_best') || '-999999', 10);
+  best = Math.max(best, G.points);
+  localStorage.setItem('s1duel_best', String(best));
+  const rows = G.hist.map((h, i) =>
+    `R${i + 1} ${h.truth ? '&#10003;' : '&#10007;'} ${h.action} ${h.pts >= 0 ? '+' : ''}${h.pts} &middot; you ${Math.round(h.p * 100)}% &middot; eng ${Math.round(h.ep * 100)}%`).join('<br>');
+  gid('gstage').innerHTML =
+    `<div class="card"><h2>&#127937; Duel over</h2>` +
+    `<div class="gverdict">${verdict}</div>` +
+    `<div class="gfinal">Points: <b>${G.points >= 0 ? '+' : ''}${G.points}</b> (best: ${best >= 0 ? '+' : ''}${best})<br>` +
+    `Brier &mdash; you <b>${G.youB.toFixed(3)}</b> &middot; engine <b>${G.engB.toFixed(3)}</b> (lower wins)<br>` +
+    `<span style="font-size:12px">Brier = mean((p &minus; truth)&sup2;): the proper scoring rule RLCD optimizes. This is why Jev's probabilities mean something.</span></div>` +
+    `<div class="ghist">${rows}</div>` +
+    `<div class="gbtnrow"><button class="btn" id="gshare">&#10548; Copy result</button>` +
+    `<button class="btn primary" id="gagain">&#10227; PLAY AGAIN</button></div></div>`;
+  gid('gshare').addEventListener('click', () => {
+    const txt = `I dueled the engine at coacerva.com\n10 statements, ${G_ROUNDS} rounds · points ${G.points >= 0 ? '+' : ''}${G.points}\nBrier: me ${G.youB.toFixed(3)} vs engine ${G.engB.toFixed(3)} — ${win ? 'I was better calibrated' : 'engine was better calibrated'}\nRematch?`;
+    if (navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(txt).then(() => { gid('gshare').textContent = '✓ Copied'; });
+  });
+  gid('gagain').addEventListener('click', startGame);
+}
+
+/* ---------- wire up ---------- */
+gid('gstart').addEventListener('click', startGame);
+gid('tauHint').textContent = `With these stakes the math says: SKIP below ${pct0(TAU_LO)} · ESCALATE ${pct0(TAU_LO)}–${pct0(TAU_HI)} · AUTO-ACT above ${pct0(TAU_HI)}. The thresholds aren't vibes — they fall out of the payoffs.`;
+ensureModel();
+</script>
+</body>
+</html>
